@@ -42,8 +42,11 @@ const productSchema = mongoose.Schema({
     type: String,
     // required: [true, "Please enter the product location"],
   },
+  status: {
+    type: Boolean,
+  },
   createdBy: {
-    type: String, 
+    type: String,
     trim: true,
   },
   createdAt: {

@@ -1,4 +1,4 @@
-const Product = require("../db/models/productMadel");
+const Product = require("../db/models/productModel");
 
 exports.getProducts = (req, res) => {
   //   res.status(200).json({ message: "Function is working fine" });
