@@ -6,14 +6,18 @@ const locationSchema = mongoose.Schema({
     required: [true, "Please enter location name"],
     trim: true,
   },
-  under: {
+  under_id: {
     type: String,
-    // required: [true, "Please enter   name"],
+    // required: [true, "Please enter under id"],
   },
 });
 
 const locationModel = mongoose.model("location", locationSchema);
-const userDoc = new locationModel({ name: 'Foo' });
-await userDoc.save();
+
+const saveData = async () => {
+  const userDoc = new locationModel({ name: "All", under_id: "1001" });
+  await userDoc.save();  
+};
+// saveData();
 
 module.exports = locationModel;
