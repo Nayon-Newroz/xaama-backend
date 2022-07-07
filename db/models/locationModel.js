@@ -5,6 +5,7 @@ const locationSchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter location name"],
     trim: true,
+    unique: true
   },
   under_id: {
     type: String,

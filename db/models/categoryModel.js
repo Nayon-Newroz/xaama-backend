@@ -5,6 +5,7 @@ const categorySchema = mongoose.Schema({
     type: String,
     required: [true, "Please enter category name"],
     trim: true,
+    unique: true,
   },
   under_id: {
     type: String,
@@ -16,7 +17,7 @@ const categoryModel = mongoose.model("category", categorySchema);
 
 const saveData = async () => {
   const userDoc = new categoryModel({ name: "All", under_id: "1001" });
-  await userDoc.save(); 
+  await userDoc.save();
 };
 // saveData();
 
