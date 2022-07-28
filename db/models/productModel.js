@@ -9,18 +9,20 @@ const productSchema = mongoose.Schema({
   description: {
     type: String,
     // required: [true, "Please enter the product description"],
+    trim: true,
   },
   price: {
     type: Number,
     // required: [true, "Please enter the product price"],
-    maxLength: [10, "Price can not exceed 10 character"],
+    maxLength: [16, "Price can not exceed 10 character"],
   },
   rating: {
-    type: String,
+    type: Number,
     default: 0,
   },
   viewed: {
     type: Number,
+    default: 0,
   },
   images: [
     {
@@ -34,16 +36,22 @@ const productSchema = mongoose.Schema({
       },
     },
   ],
-  category: {
+
+  storeId: {
     type: String,
     // required: [true, "Please enter the product category"],
   },
-  location: {
+  categoryId: {
+    type: String,
+    // required: [true, "Please enter the product category"],
+  },
+  locationId: {
     type: String,
     // required: [true, "Please enter the product location"],
   },
   status: {
     type: Boolean,
+    default: true,
   },
   createdBy: {
     type: String,

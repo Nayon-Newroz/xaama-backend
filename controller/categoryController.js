@@ -1,35 +1,28 @@
 const categoryModel = require("../db/models/categoryModel");
+const ErrorHander = require("../utils/errorHandler");
+const catchAsyncError = require("../middleware/catchAsyncError");
 
-const getAll = async (req, res, next) => {
+const getAll = catchAsyncError(async (req, res, next) => {
   const data = await categoryModel.find();
   res.status(200).json({
     success: true,
     message: "successful",
     data: data,
   });
-};
-const getById = async (req, res, next) => {
-  try {
-    let data = await categoryModel.findById(req.params.id);
-    if (!data) {
-      return res.send({ message: "No data found", status: 404 });
-    }
-    res.send({ message: "success", status: 200, data: data });
-  } catch (error) {
-    console.log("error", error);
-    res.send({ message: "error", status: 400, error: error });
+});
+const getById = catchAsyncError(async (req, res, next) => {
+  let data = await categoryModel.findById(req.params.id);
+  if (!data) {
+    return res.send({ message: "No data found", status: 404 });
   }
-};
-const createData = async (req, res, next) => {
+  res.send({ message: "success", status: 200, data: data });
+});
+const createData = catchAsyncError(async (req, res, next) => {
   console.log("req", req.body);
-  try {
-    const data = await categoryModel.create(req.body);
-    res.send({ message: "success", status: 200, data: data });
-  } catch (error) {
-    console.log("error", error);
-    res.send({ message: "error", status: 400, error: error });
-  }
-};
+
+  const data = await categoryModel.create(req.body);
+  res.send({ message: "success", status: 201, data: data });
+});
 
 const updateData = async (req, res, next) => {
   try {
@@ -58,27 +51,22 @@ const updateData = async (req, res, next) => {
 const patchData = async (req, res, next) => {
   console.log("patchData function is working");
 };
-const deleteData = async (req, res, next) => {
-  try {
-    console.log("deleteData function is working");
-    let data = await categoryModel.findById(req.params.id);
-    console.log("data", data);
-    if (!data) {
-      console.log("if");
-      return res.send({ message: "No data found", status: 404 });
-    }
-
-    await data.remove();
-    res.status(200).json({
-      success: true,
-      message: "Delete successfully",
-      data: data,
-    });
-  } catch (error) {
-    console.log("error", error);
-    res.send({ message: "error", status: 400, error: error });
+const deleteData = catchAsyncError(async (req, res, next) => {
+  console.log("deleteData function is working");
+  let data = await categoryModel.findById(req.params.id);
+  console.log("data", data);
+  if (!data) {
+    console.log("if");
+    return res.send({ message: "No data found", status: 404 });
   }
-};
+
+  await data.remove();
+  res.status(200).json({
+    success: true,
+    message: "Delete successfully",
+    data: data,
+  });
+});
 module.exports = {
   getAll,
   getById,

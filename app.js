@@ -5,13 +5,14 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 require("dotenv").config();
 const conntectDB = require("./db/database");
-
+// Routes Imports
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
 var productsRouter = require("./routes/products");
 var locationsRouter = require("./routes/locations");
 var categoryRouter = require("./routes/category");
 
+const errorMiddleware = require("./middleware/error");
 // Database connection
 
 conntectDB();
@@ -30,14 +31,15 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/products", productsRouter);
+app.use("/product", productsRouter);
 app.use("/locations", locationsRouter);
 app.use("/category", categoryRouter);
 
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
-  next(createError(404));
-});
+app.use(errorMiddleware);
+// app.use(function (req, res, next) {
+//   next(createError(404));
+// });
 
 // error handler
 app.use(function (err, req, res, next) {

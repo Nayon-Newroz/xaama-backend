@@ -1,27 +1,21 @@
 var express = require("express");
 const {
-  getProducts,
-  createProduct,
+  getAll,
+  getById,
+  createData,
+  updateData,
+  patchData,
+  deleteData,
 } = require("../controller/productController");
 const productModel = require("../db/models/productModel");
+
 var router = express.Router();
 
-/* GET users listing. */
-router.get("/", function (req, res, next) {
-  // res.status(200).json({
-  //   message:'suggess'
-  // })
-  getProducts()
-  res.send({ message: "success", status: 200 });
-  // res.send("respond with a resource");
-});
-router.post("/create", async function (req, res, next) {
-  console.log("req123456", req.body);
-  const product = await productModel.create(req.body);
-  console.log("product", product);
-  res.send({ message: "success", status: 200 });
-  // createProduct();
-  // res.send(getProducts());
-});
+router.route("/").get(getAll);
+router.route("/:id").get(getById);
+router.route("/create").post(createData);
+router.route("/update/:id").put(updateData);
+router.route("/patch/:id").patch(patchData);
+router.route("/delete/:id").delete(deleteData);
 
 module.exports = router;
