@@ -30,10 +30,10 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/product", productsRouter);
-app.use("/locations", locationsRouter);
-app.use("/category", categoryRouter);
+app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/product", productsRouter);
+app.use("/api/v1/locations", locationsRouter);
+app.use("/api/v1/category", categoryRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);
