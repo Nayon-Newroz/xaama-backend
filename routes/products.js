@@ -2,6 +2,7 @@ var express = require("express");
 const {
   getAll,
   getById,
+  getFilterItems,
   createData,
   updateData,
   patchData,
@@ -13,6 +14,7 @@ var router = express.Router();
 
 router.route("/").get(getAll);
 router.route("/:id").get(getById);
+// router.route("/:filters").get(getFilterItems);
 router.route("/create").post(createData);
 router.route("/update/:id").put(updateData);
 router.route("/patch/:id").patch(patchData);
