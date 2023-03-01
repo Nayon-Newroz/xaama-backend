@@ -12,6 +12,7 @@ var indexRouter = require("./routes/index");
 var productsRouter = require("./routes/products");
 var locationsRouter = require("./routes/locations");
 var categoryRouter = require("./routes/category");
+var filterRouter = require("./routes/filter");
 
 const errorMiddleware = require("./middleware/error");
 // Database connection
@@ -50,8 +51,9 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use("/", indexRouter);
 // app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/product", productsRouter);
-app.use("/api/v1/locations", locationsRouter);
-app.use("/api/v1/category", categoryRouter); 
+app.use("/api/v1/location", locationsRouter);
+app.use("/api/v1/category", categoryRouter);
+app.use("/api/v1/filter", filterRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);

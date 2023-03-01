@@ -36,9 +36,9 @@ const productSchema = mongoose.Schema({
       },
     },
   ],
-filterId:{
-  type:Array
-},
+  filter_id: {
+    type: Array,
+  },
   storeId: {
     type: String,
     // required: [true, "Please enter the product category"],

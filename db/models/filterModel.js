@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const locationSchema = mongoose.Schema({
+const filterSchema = mongoose.Schema({
   name: {
     type: String,
     required: [true, "Please enter category name"],
@@ -11,6 +11,9 @@ const locationSchema = mongoose.Schema({
     type: String,
     // default: 10000,
     required: [true, "Please enter parent name"],
+  },
+  category_id: {
+    type: Array,
   },
   status: {
     type: Boolean,
@@ -30,19 +33,19 @@ const locationSchema = mongoose.Schema({
   updated_at: { type: Date, default: Date.now },
 });
 
-const locationModel = mongoose.model("location", locationSchema);
+const filterModel = mongoose.model("filter", filterSchema);
 
 const saveData = async () => {
-  let totalData = await locationModel.countDocuments();
+  let totalData = await filterModel.countDocuments();
   console.log("totalData 123456", totalData);
   if (totalData < 1) {
-    const catDoc = new locationModel({
+    const filterDoc = new filterModel({
       name: "Primary",
       parent_name: "Primary",
     });
-    await catDoc.save();
+    await filterDoc.save();
   }
 };
 saveData();
 
-module.exports = locationModel;
+module.exports = filterModel;

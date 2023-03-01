@@ -1,9 +1,9 @@
-const categoryModel = require("../db/models/categoryModel");
+const filterModel = require("../db/models/filterModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
-  const data = await categoryModel.find({}, "name").lean();
+  const data = await filterModel.find({}, "name").lean();
   res.status(200).json({
     success: true,
     message: "successful",
@@ -12,7 +12,7 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
 });
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
-  console.log("===========req.query.page", req.query.page);
+  console.log("===Filter========req.query.page", req.query.page);
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
@@ -26,9 +26,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = req.query.parent_name;
   }
-  let totalData = await categoryModel.countDocuments(query);
+  let totalData = await filterModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await categoryModel.find(query).skip(startIndex).limit(limit);
+  const data = await filterModel.find(query).skip(startIndex).limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -40,7 +40,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await categoryModel.findById(req.params.id);
+  let data = await filterModel.findById(req.params.id);
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
   }
@@ -51,19 +51,19 @@ const createData = catchAsyncError(async (req, res, next) => {
   // Category id start number 10000
   let newData = req.body;
 
-  const data = await categoryModel.create(req.body);
+  const data = await filterModel.create(req.body);
   res.send({ message: "success", status: 201, data: data });
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
-  let data = await categoryModel.findById(req.params.id);
+  let data = await filterModel.findById(req.params.id);
 
   if (!data) {
     console.log("if");
     return res.send({ message: "No data found", status: 404 });
   }
 
-  data = await categoryModel.findByIdAndUpdate(req.params.id, req.body, {
+  data = await filterModel.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
@@ -77,7 +77,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await categoryModel.findById(req.params.id);
+  let data = await filterModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");

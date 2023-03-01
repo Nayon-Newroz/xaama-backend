@@ -6,8 +6,8 @@ const {
   createData,
   updateData,
   deleteData,
-} = require("../controller/categoryController");
-const categoryModel = require("../db/models/categoryModel");
+} = require("../controller/filterController");
+const filterModel = require("../db/models/filterModel");
 
 var router = express.Router();
 
