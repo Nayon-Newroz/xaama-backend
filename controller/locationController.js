@@ -18,13 +18,13 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const endIndex = page * limit;
   var query = {};
   if (req.query.name) {
-    query.name = req.query.name;
+    query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
   if (req.query.parent_name) {
-    query.parent_name = req.query.parent_name;
+    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
   let totalData = await locationModel.countDocuments(query);
   console.log("totalData=================================", totalData);
@@ -60,7 +60,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   if (!data) {
     console.log("if");
-    return res.send({ message: "No data found", status: 404 });
+    return next(new ErrorHander("No data found", 404));
   }
 
   data = await locationModel.findByIdAndUpdate(req.params.id, req.body, {
@@ -81,7 +81,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("data", data);
   if (!data) {
     console.log("if");
-    return res.send({ message: "No data found", status: 404 });
+    return next(new ErrorHander("No data found", 404));
   }
 
   await data.remove();

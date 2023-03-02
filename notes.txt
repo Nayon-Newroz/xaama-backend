@@ -1,1 +1,20 @@
 category,location -> createBy and UpdateBy need to pass the user name after user module complete
+
+
+
+
+const arr = [{"color":"red"},{"color":"blue"},{"size":"s"},{"size":"m"}];
+
+const result = arr.reduce((acc, curr) => {
+  const key = Object.keys(curr)[0];
+  if (acc[key]) {
+    acc[key].push(curr[key]);
+  } else {
+    acc[key] = [curr[key]];
+  }
+  return acc;
+}, {});
+
+const finalResult = Object.entries(result).map(([key, value]) => ({[key]: value}));
+
+console.log(finalResult);
