@@ -18,7 +18,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const endIndex = page * limit;
   var query = {};
   if (req.query.name) {
-    query.name =   new RegExp(`^${req.query.name}$`, "i");
+    query.name = new RegExp(`^${req.query.name}$`, "i");
   }
   if (req.query.status) {
     query.status = req.query.status;
@@ -46,6 +46,13 @@ const getById = catchAsyncError(async (req, res, next) => {
   }
   res.send({ message: "success", status: 200, data: data });
 });
+const getCategoryWiseFilters = catchAsyncError(async (req, res, next) => {
+  let data = await filterModel.findById(req.params.id);
+  if (!data) {
+    return res.send({ message: "No data found", status: 404 });
+  }
+  res.send({ message: "success", status: 200, data: data });
+});
 
 const createData = catchAsyncError(async (req, res, next) => {
   // Category id start number 10000
@@ -56,8 +63,9 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
+  const { name } = req.body;
   let data = await filterModel.findById(req.params.id);
-
+  let oldParentName = data.name;
   if (!data) {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
@@ -68,10 +76,15 @@ const updateData = catchAsyncError(async (req, res, next) => {
     runValidators: true,
     useFindAndModified: false,
   });
+  const childrenParentUpdate = await filterModel.updateMany(
+    { parent_name: oldParentName },
+    { $set: { parent_name: name } }
+  );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
+    childrenParentUpdate,
   });
 });
 
@@ -94,6 +107,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 module.exports = {
   getParentDropdown,
   getDataWithPagination,
+  getCategoryWiseFilters,
   getById,
   createData,
   updateData,

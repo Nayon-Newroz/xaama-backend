@@ -56,8 +56,9 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
+  const { name } = req.body;
   let data = await locationModel.findById(req.params.id);
-
+  let oldParentName = data.name;
   if (!data) {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
@@ -68,10 +69,15 @@ const updateData = catchAsyncError(async (req, res, next) => {
     runValidators: true,
     useFindAndModified: false,
   });
+  const childrenParentUpdate = await locationModel.updateMany(
+    { parent_name: oldParentName },
+    { $set: { parent_name: name } }
+  );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
+    childrenParentUpdate,
   });
 });
 
