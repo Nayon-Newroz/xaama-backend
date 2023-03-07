@@ -38,7 +38,7 @@ const saveData = async () => {
   if (totalData < 1) {
     const catDoc = new locationModel({
       name: "Primary",
-      parent_name: "Primary",
+      parent_name: "None",
     });
     await catDoc.save();
   }

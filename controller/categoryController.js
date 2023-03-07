@@ -1,6 +1,7 @@
 const categoryModel = require("../db/models/categoryModel");
 const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
+const filterModel = require("../db/models/filterModel");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
   const data = await categoryModel.find({}, "name").lean();
@@ -100,6 +101,78 @@ const deleteData = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+
+const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
+  console.log("req.body 3213231", req.body.category_name);
+
+  let ids = [];
+  let parents = await categoryModel.find({
+    parent_name: new RegExp(`^${req.body.category_name}$`, "i"),
+  });
+  async function findLeafNodes() {
+    console.log("findLeafNodes");
+    parents.map(async (item) => {
+      let node = await categoryModel.find({
+        parent_name: new RegExp(`^${item.name}$`, "i"),
+      });
+      console.log("node", node);
+      if (node.length === 0) {
+        console.log("if");
+        // ids.push(node);
+      } else {
+        console.log("else");
+        // return findLeafNodes();
+      }
+    });
+  }
+  findLeafNodes();
+  // const children = parents.flatMap((node) => node.name || []);
+  // if (children.length === 0) {
+  //   return parents;
+  // } else {
+  //   return getChildrens();
+  // }
+  console.log("parents", parents);
+  console.log("ids", ids);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: parents,
+  });
+  return;
+  const data = await filterModel
+    .find(
+      {
+        category_id: {
+          $in: req.body.category_Ids,
+        },
+      },
+      "name parent_name"
+    )
+    .lean()
+    .sort({ parent_name: 1 });
+
+  let result = [];
+
+  data.map((p) => {
+    // filterValues.some((e) => e.filter_name === p.parent_name);
+    if (!result.some((e) => e.filter_name === p.parent_name)) {
+      let filterDataByParentName = data.filter(
+        (res) => res.parent_name === p.parent_name
+      );
+      result.push({
+        filter_name: p.parent_name,
+        filter_values: filterDataByParentName,
+      });
+    }
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: result,
+  });
+});
 module.exports = {
   getParentDropdown,
   getDataWithPagination,
@@ -107,4 +180,5 @@ module.exports = {
   createData,
   updateData,
   deleteData,
+  getCategoryWiseFilterList,
 };

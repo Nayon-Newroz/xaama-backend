@@ -41,7 +41,7 @@ const saveData = async () => {
   if (totalData < 1) {
     const filterDoc = new filterModel({
       name: "Primary",
-      parent_name: "Primary",
+      parent_name: "None",
     });
     await filterDoc.save();
   }

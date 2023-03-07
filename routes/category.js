@@ -1,11 +1,12 @@
 var express = require("express");
 const {
   getParentDropdown,
-  getDataWithPagination, 
+  getDataWithPagination,
   getById,
   createData,
   updateData,
   deleteData,
+  getCategoryWiseFilterList,
 } = require("../controller/categoryController");
 const categoryModel = require("../db/models/categoryModel");
 
@@ -17,5 +18,6 @@ router.route("/:id").get(getById);
 router.route("/create").post(createData);
 router.route("/update/:id").put(updateData);
 router.route("/delete/:id").delete(deleteData);
+router.route("/category-filter-list").post(getCategoryWiseFilterList);
 
 module.exports = router;

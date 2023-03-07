@@ -10,6 +10,45 @@ const getParentDropdown = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
+
+  
+  console.log("req.body", req.body.category_Ids);
+
+  const data = await filterModel
+    .find(
+      {
+        category_id: {
+          $in: req.body.category_Ids,
+        },
+      },
+      "name parent_name"
+    )
+    .lean()
+    .sort({ parent_name: 1 });
+
+  let result = [];
+
+  data.map((p) => {
+    // filterValues.some((e) => e.filter_name === p.parent_name);
+    if (!result.some((e) => e.filter_name === p.parent_name)) {
+      let filterDataByParentName = data.filter(
+        (res) => res.parent_name === p.parent_name
+      );
+      result.push({
+        filter_name: p.parent_name,
+        filter_values: filterDataByParentName,
+      });
+    }
+  });
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: result,
+  });
+});
+
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===Filter========req.query.page", req.query.page);
@@ -28,8 +67,48 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
   let totalData = await filterModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await filterModel.find(query).skip(startIndex).limit(limit);
+
+  // let data = await filterModel.find(query).skip(startIndex).limit(limit);
+
+  // const data = filterModel.aggregate([
+  //   {
+  //     $graphLookup: {
+  //       from: "filters",
+  //       startWith: "$parent_name",
+  //       connectFromField: "parent_name",
+  //       connectToField: "name",
+  //       as: "reportingHierarchy",
+  //     },
+  //   },
+  // ]);
+
+  // this query for name with parent list
+  const pipeline = [
+    {
+      $match: query,
+    },
+    {
+      $graphLookup: {
+        from: "filters",
+        startWith: "$name",
+        connectFromField: "parent_name",
+        connectToField: "parent_name",
+        maxDepth: 1,
+        as: "children",
+      },
+    },
+    // {
+    //   $sort: { parent_name: 1 },
+    // },
+  ];
+
+  const data = await filterModel
+    .aggregate(pipeline)
+    .skip(startIndex)
+    .limit(limit)
+    .exec();
   console.log("data", data);
+
   res.status(200).json({
     success: true,
     message: "successful",
@@ -40,13 +119,6 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await filterModel.findById(req.params.id);
-  if (!data) {
-    return res.send({ message: "No data found", status: 404 });
-  }
-  res.send({ message: "success", status: 200, data: data });
-});
-const getCategoryWiseFilters = catchAsyncError(async (req, res, next) => {
   let data = await filterModel.findById(req.params.id);
   if (!data) {
     return res.send({ message: "No data found", status: 404 });
@@ -106,8 +178,8 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getParentDropdown,
+  getCategoryWiseFilterList,
   getDataWithPagination,
-  getCategoryWiseFilters,
   getById,
   createData,
   updateData,
