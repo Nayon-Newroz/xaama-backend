@@ -102,49 +102,39 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   });
 });
 
-const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
-  console.log("req.body 3213231", req.body.category_name);
-
-  let ids = [];
+async function getAllLeafNodes(data) {
+  console.log("getAllLeafNodes", data);
   let parents = await categoryModel.find({
-    parent_name: new RegExp(`^${req.body.category_name}$`, "i"),
+    name: { $ne: "Primary" },
+    parent_name: new RegExp(`^${data.name}$`, "i"),
   });
-  async function findLeafNodes() {
-    console.log("findLeafNodes");
-    parents.map(async (item) => {
-      let node = await categoryModel.find({
-        parent_name: new RegExp(`^${item.name}$`, "i"),
-      });
-      console.log("node", node);
-      if (node.length === 0) {
-        console.log("if");
-        // ids.push(node);
-      } else {
-        console.log("else");
-        // return findLeafNodes();
-      }
-    });
+  // parents = parents.filter((e) => e.name !== "Primary");
+  console.log("11111111111", parents);
+  if (parents.length < 1) {
+    // If the parent has no children, it is a leaf node.
+    console.log("data._id", data._id);
+    return [data._id];
   }
-  findLeafNodes();
-  // const children = parents.flatMap((node) => node.name || []);
-  // if (children.length === 0) {
-  //   return parents;
-  // } else {
-  //   return getChildrens();
-  // }
-  console.log("parents", parents);
-  console.log("ids", ids);
-  res.status(200).json({
-    success: true,
-    message: "successful",
-    data: parents,
-  });
-  return;
+
+  const childPromises = parents.map((item) => getAllLeafNodes(item));
+  const childNodes = await Promise.all(childPromises);
+
+  // Use the spread operator to flatten the array of arrays into a single array.
+  return [...childNodes.flat()];
+}
+const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
+  console.log("req.body 3213231", req.body);
+
+  const leafNodes = await getAllLeafNodes(req.body);
+  console.log("leafNodes", leafNodes.toString());
+
+  const stringIds = leafNodes.map((id) => id.toString());
+  console.log(stringIds);
   const data = await filterModel
     .find(
       {
         category_id: {
-          $in: req.body.category_Ids,
+          $in: stringIds,
         },
       },
       "name parent_name"
@@ -166,7 +156,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
       });
     }
   });
-
+  console.log("result", result);
   res.status(200).json({
     success: true,
     message: "successful",
