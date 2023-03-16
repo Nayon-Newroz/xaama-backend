@@ -1,6 +1,8 @@
 const productModel = require("../db/models/productModel");
-
+const sizeOf = require("image-size");
 const ErrorHander = require("../utils/errorHandler");
+const imageUpload = require("../utils/imageUpload");
+const imageDelete = require("../utils/imageDelete");
 const catchAsyncError = require("../middleware/catchAsyncError");
 
 const getAll = catchAsyncError(async (req, res, next) => {
@@ -14,14 +16,20 @@ const getAll = catchAsyncError(async (req, res, next) => {
 const getById = catchAsyncError(async (req, res, next) => {
   let data = await productModel.findById(req.params.id);
   if (!data) {
-    return res.send({ message: "No data found", status: 404 });
+    return next(new ErrorHander("No data found", 404));
   }
   res.send({ message: "success", status: 200, data: data });
 });
 const createData = catchAsyncError(async (req, res, next) => {
-  console.log("req", req.body);
-
-  const data = await productModel.create(req.body);
+  console.log("req.files.images", req.files);
+  let imageData = [];
+  if (req.files) {
+    imageData = await imageUpload(req.files.images, next);
+  }
+  console.log("imageData", imageData);
+  let newData = { ...req.body, images: imageData };
+  console.log("newData", newData);
+  const data = await productModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
@@ -31,7 +39,7 @@ const updateData = async (req, res, next) => {
 
     if (!data) {
       console.log("if");
-      return res.send({ message: "No data found", status: 404 });
+      return next(new ErrorHander("No data found", 404));
     }
 
     data = await productModel.findByIdAndUpdate(req.params.id, req.body, {
@@ -55,12 +63,19 @@ const patchData = async (req, res, next) => {
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
   let data = await productModel.findById(req.params.id);
-  console.log("data", data);
+  console.log("data", data.images);
   if (!data) {
     console.log("if");
-    return res.send({ message: "No data found", status: 404 });
+    return next(new ErrorHander("No data found", 404));
   }
 
+  if (data.images.length > 0) {
+    for (let index = 0; index < data.images.length; index++) {
+      const element = data.images[index];
+
+      await imageDelete(element.public_id);
+    }
+  }
   await data.remove();
   res.status(200).json({
     success: true,

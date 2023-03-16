@@ -1,6 +1,8 @@
-category,location -> createBy and UpdateBy need to pass the user name after user module complete
+=> category,location -> createBy and UpdateBy need to pass the user name after user module complete
 
+=>Learn create index for fase searching
 
+=>
 
 
 const arr = [{"color":"red"},{"color":"blue"},{"size":"s"},{"size":"m"}];

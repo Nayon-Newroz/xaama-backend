@@ -4,6 +4,8 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 var cors = require("cors");
+const bodyParser = require("body-parser");
+const fileUpload = require("express-fileupload");
 require("dotenv").config();
 const conntectDB = require("./db/database");
 // Routes Imports
@@ -43,11 +45,12 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "jade");
 
 app.use(logger("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: "50mb" }));
+// app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
-
+app.use(fileUpload({ useTempFiles: true }));
 app.use("/", indexRouter);
 // app.use("/api/v1/users", usersRouter);
 app.use("/api/v1/product", productsRouter);
