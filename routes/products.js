@@ -1,6 +1,7 @@
 var express = require("express");
 const {
   getAll,
+  getDataWithPagination,
   getById,
   getFilterItems,
   createData,
@@ -12,7 +13,7 @@ const productModel = require("../db/models/productModel");
 
 var router = express.Router();
 
-router.route("/").get(getAll);
+router.route("/").get(getDataWithPagination);
 router.route("/:id").get(getById);
 // router.route("/:filters").get(getFilterItems);
 router.route("/create").post(createData);

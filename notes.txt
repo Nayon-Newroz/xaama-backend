@@ -1,6 +1,10 @@
 => category,location -> createBy and UpdateBy need to pass the user name after user module complete
 
-=>Learn create index for fase searching
+=> UpdateBy need tobe aan array for tracking updateby users 
+
+=>Learn create index for fase searching and aggregate for query
+
+=>need to check urlEncodded for det API
 
 =>
 

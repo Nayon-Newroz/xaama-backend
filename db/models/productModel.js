@@ -10,14 +10,21 @@ const productSchema = mongoose.Schema({
   description: {
     type: String,
     // required: [true, "Please enter the product description"],
-    trim: true,
-    maxLength: [3000, "Name can not exceed 3000 character"],
+    // trim: true,
+    // maxLength: [3000, "Name can not exceed 3000 character"],
   },
   price: {
     type: Number,
     // required: [true, "Please enter the product price"],
+    min: [0, "Price can not less than 0"],
     maxLength: [16, "Price can not exceed 10 character"],
   },
+  discount_price: {
+    type: Number,
+    // required: [true, "Please enter the product price"],
+    maxLength: [16, "Price can not exceed 10 character"],
+  },
+
   rating: [
     {
       user: {
@@ -35,22 +42,28 @@ const productSchema = mongoose.Schema({
     type: Number,
     default: 0,
   },
-  stock: {
+  stock_unit: {
     type: Number,
-    default: 10,
-    min: [0, "sorry! out of stock"],
+    default: 100,
+    min: [0, "Sorry! out of stock"],
+  },
+  sku: {
+    type: String,
+    // required: [true, "Please enter the product name"],
+    trim: true,
+    maxLength: [20, "Name can not exceed 20 character"],
   },
   images: [
     {
       public_id: {
         type: String,
-        default: "aaaaaa",
+        // default: "N/A",
         // required: true,
       },
       url: {
         type: String,
         // required: true,
-        default: "aaaaaa",
+        // default: "N/A",
       },
     },
   ],
@@ -59,6 +72,7 @@ const productSchema = mongoose.Schema({
   },
   store_id: {
     type: String,
+    default:"N/A"
     // required: [true, "Please enter the product category"],
   },
   category_id: {

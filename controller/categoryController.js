@@ -113,7 +113,7 @@ async function getAllLeafNodes(data) {
   if (parents.length < 1) {
     // If the parent has no children, it is a leaf node.
     console.log("data._id", data._id);
-    return [data._id];
+    return [data];
   }
 
   const childPromises = parents.map((item) => getAllLeafNodes(item));
@@ -122,13 +122,52 @@ async function getAllLeafNodes(data) {
   // Use the spread operator to flatten the array of arrays into a single array.
   return [...childNodes.flat()];
 }
+
+const getLeafCategoryList = catchAsyncError(async (req, res, next) => {
+  console.log("getLeafCategoryList");
+  const leafNodes2 = await categoryModel.aggregate([
+    // { $match: { parent_name: "Mobile" } },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "name",
+        foreignField: "parent_name",
+        as: "children",
+      },
+    },
+    {
+      $addFields: {
+        isLeaf: { $eq: ["$children", []] },
+      },
+    },
+    { $match: { isLeaf: true } },
+    { $project: { _id: 1, name: 1, parent_name: 1 } },
+  ]);
+
+  // res.json(leafNodes2);
+
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: leafNodes2,
+  });
+
+   
+});
 const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
   console.log("req.body 3213231", req.body);
 
   const leafNodes = await getAllLeafNodes(req.body);
+
   console.log("leafNodes", leafNodes.toString());
 
-  const stringIds = leafNodes.map((id) => id.toString());
+  const stringIds = [];
+  leafNodes.map((res) => {
+    stringIds.push(res._id.toString());
+  });
+
+  console.log("stringIds", stringIds);
+  // const stringIds = leafNodes.map((id) => id.toString());
   console.log(stringIds);
   const data = await filterModel
     .find(
@@ -165,6 +204,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getParentDropdown,
+  getLeafCategoryList,
   getDataWithPagination,
   getById,
   createData,

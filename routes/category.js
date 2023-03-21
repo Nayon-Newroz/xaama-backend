@@ -1,6 +1,7 @@
 var express = require("express");
 const {
   getParentDropdown,
+  getLeafCategoryList,
   getDataWithPagination,
   getById,
   createData,
@@ -14,6 +15,7 @@ var router = express.Router();
 
 router.route("/").get(getDataWithPagination);
 router.route("/dropdownlist").get(getParentDropdown);
+router.route("/leaf-dropdown").get(getLeafCategoryList);
 router.route("/:id").get(getById);
 router.route("/create").post(createData);
 router.route("/update/:id").put(updateData);
