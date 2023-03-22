@@ -32,7 +32,32 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   }
   let totalData = await productModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await productModel.find(query).skip(startIndex).limit(limit);
+
+  // -------------------------start-------------------------------------------
+  const data = await productModel.aggregate([
+    
+    {
+      $lookup: {
+        from: "categories",
+        localField: "category_id",
+        foreignField: "name",
+        as: "category_data",
+      },
+    },
+    // {
+    //   $unwind: "$category",
+    // },
+    // {
+    //   $project: {
+    //     _id: 1,
+    //     name: 1,
+    //     price: 1,
+    //     category: "$category",
+    //   },
+    // },
+  ]);
+  // -------------------------end-------------------------------------------
+  // const data = await productModel.find(query).skip(startIndex).limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,

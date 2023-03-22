@@ -6,7 +6,7 @@
 
 =>need to check urlEncodded for det API
 
-=>
+=> add product a price and deicount price decimal korte hobe and check korte hobe compare kore kivabe (ex : max price 100.50 and min price 10)
 
 
 const arr = [{"color":"red"},{"color":"blue"},{"size":"s"},{"size":"m"}];
