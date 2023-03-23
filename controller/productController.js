@@ -35,7 +35,6 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
 
   // -------------------------start-------------------------------------------
   const data = await productModel.aggregate([
-    
     {
       $lookup: {
         from: "categories",
@@ -99,15 +98,34 @@ const updateData = async (req, res, next) => {
       return next(new ErrorHander("No data found", 404));
     }
 
-    data = await productModel.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-      useFindAndModified: false,
-    });
+    // deleting previous images
+    if (data.images.length > 0) {
+      for (let index = 0; index < data.images.length; index++) {
+        const element = data.images[index];
+        await imageDelete(element.public_id);
+      }
+    }
+    //uploading new images
+    let imageData = [];
+    if (req.files) {
+      imageData = await imageUpload(req.files.images, next);
+    }
+    console.log("imageData", imageData);
+    let newData = { ...req.body, images: imageData };
+    console.log("newData", newData);
+    let updateData = await productModel.findByIdAndUpdate(
+      req.params.id,
+      newData,
+      {
+        new: true,
+        runValidators: true,
+        useFindAndModified: false,
+      }
+    );
     res.status(200).json({
       success: true,
       message: "Update successfully",
-      data: data,
+      data: updateData,
     });
   } catch (error) {
     console.log("error", error);
