@@ -3,51 +3,49 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
-  const data = await filterModel.find({}, "name").lean();
+  const data = await filterModel.find({}, "name filter_id").lean();
   res.status(200).json({
     success: true,
     message: "successful",
     data: data,
   });
 });
-const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
+// const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
+//   console.log("req.body", req.body.category_Ids);
 
-  
-  console.log("req.body", req.body.category_Ids);
+//   const data = await filterModel
+//     .find(
+//       {
+//         category_id: {
+//           $in: req.body.category_Ids,
+//         },
+//       },
+//       "name parent_name"
+//     )
+//     .lean()
+//     .sort({ parent_name: 1 });
 
-  const data = await filterModel
-    .find(
-      {
-        category_id: {
-          $in: req.body.category_Ids,
-        },
-      },
-      "name parent_name"
-    )
-    .lean()
-    .sort({ parent_name: 1 });
+//   let result = [];
 
-  let result = [];
+//   data.map((p) => {
+//     // filterValues.some((e) => e.filter_name === p.parent_name);
+//     if (!result.some((e) => e.filter_name === p.parent_name)) {
+//       let filterDataByParentName = data.filter(
+//         (res) => res.parent_name === p.parent_name
+//       );
+//       result.push({
+//         filter_name: p.parent_name,
+//         filter_values: filterDataByParentName,
+//       });
+//     }
+//   });
 
-  data.map((p) => {
-    // filterValues.some((e) => e.filter_name === p.parent_name);
-    if (!result.some((e) => e.filter_name === p.parent_name)) {
-      let filterDataByParentName = data.filter(
-        (res) => res.parent_name === p.parent_name
-      );
-      result.push({
-        filter_name: p.parent_name,
-        filter_values: filterDataByParentName,
-      });
-    }
-  });
-
-  res.status(200).json({
-    success: true,
-    message: "successful",
-    data: result,
-  });
-});
+//   res.status(200).json({
+//     success: true,
+//     message: "successful",
+//     data: result,
+//   });
+// });
 
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
@@ -127,10 +125,21 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  // Category id start number 10000
-  let newData = req.body;
+  let newIdserial;
+  let newIdNo;
+  let newId;
+  const lastDoc = await filterModel.find().sort({ _id: -1 });
+  if (lastDoc.length > 0) {
+    newIdserial = lastDoc[0].filter_id.slice(0, 1);
+    newIdNo = parseInt(lastDoc[0].filter_id.slice(1)) + 1;
+    newId = newIdserial.concat(newIdNo);
+  } else {
+    newId = "f100";
+  }
 
-  const data = await filterModel.create(req.body);
+  let newData = { ...req.body, filter_id: newId };
+
+  const data = await filterModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
@@ -178,7 +187,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getParentDropdown,
-  getCategoryWiseFilterList,
+  // getCategoryWiseFilterList,
   getDataWithPagination,
   getById,
   createData,

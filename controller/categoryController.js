@@ -4,7 +4,7 @@ const catchAsyncError = require("../middleware/catchAsyncError");
 const filterModel = require("../db/models/filterModel");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
-  const data = await categoryModel.find({}, "name").lean();
+  const data = await categoryModel.find({}, "name category_id").lean();
   res.status(200).json({
     success: true,
     message: "successful",
@@ -49,10 +49,21 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  // Category id start number 10000
-  let newData = req.body;
+  let newIdserial;
+  let newIdNo;
+  let newId;
+  const lastDoc = await categoryModel.find().sort({ _id: -1 });
+  if (lastDoc.length > 0) {
+    newIdserial = lastDoc[0].category_id.slice(0, 1);
+    newIdNo = parseInt(lastDoc[0].category_id.slice(1)) + 1;
+    newId = newIdserial.concat(newIdNo);
+  } else {
+    newId = "c100";
+  }
 
-  const data = await categoryModel.create(req.body);
+  let newData = { ...req.body, category_id: newId };
+
+  const data = await categoryModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
@@ -141,7 +152,7 @@ const getLeafCategoryList = catchAsyncError(async (req, res, next) => {
       },
     },
     { $match: { isLeaf: true } },
-    { $project: { _id: 1, name: 1, parent_name: 1 } },
+    { $project: { _id: 1, name: 1, parent_name: 1, category_id: 1 } },
   ]);
 
   // res.json(leafNodes2);
@@ -151,8 +162,6 @@ const getLeafCategoryList = catchAsyncError(async (req, res, next) => {
     message: "successful",
     data: leafNodes2,
   });
-
-   
 });
 const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
   console.log("req.body 3213231", req.body);
@@ -163,7 +172,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
 
   const stringIds = [];
   leafNodes.map((res) => {
-    stringIds.push(res._id.toString());
+    stringIds.push(res.category_id.toString());
   });
 
   console.log("stringIds", stringIds);
@@ -176,7 +185,7 @@ const getCategoryWiseFilterList = catchAsyncError(async (req, res, next) => {
           $in: stringIds,
         },
       },
-      "name parent_name"
+      "name parent_name filter_id"
     )
     .lean()
     .sort({ parent_name: 1 });

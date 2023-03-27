@@ -1,7 +1,7 @@
 var express = require("express");
 const {
   getParentDropdown,
-  getCategoryWiseFilterList,
+  // getCategoryWiseFilterList,
   getDataWithPagination,
   getById,
   createData,
@@ -13,7 +13,7 @@ const filterModel = require("../db/models/filterModel");
 var router = express.Router();
 
 router.route("/").get(getDataWithPagination);
-router.route("/category-filter-list").post(getCategoryWiseFilterList);
+// router.route("/category-filter-list").post(getCategoryWiseFilterList);
 router.route("/dropdownlist").get(getParentDropdown);
 router.route("/:id").get(getById);
 router.route("/create").post(createData);

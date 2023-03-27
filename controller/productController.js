@@ -39,21 +39,48 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lookup: {
         from: "categories",
         localField: "category_id",
-        foreignField: "name",
+        foreignField: "category_id",
         as: "category_data",
       },
     },
-    // {
-    //   $unwind: "$category",
-    // },
-    // {
-    //   $project: {
-    //     _id: 1,
-    //     name: 1,
-    //     price: 1,
-    //     category: "$category",
-    //   },
-    // },
+    {
+      $lookup: {
+        from: "filters",
+        localField: "filter_id",
+        foreignField: "filter_id",
+        as: "filter_data",
+      },
+    },
+
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        price: 1,
+        discount_price: 1,
+        rating: 1,
+        viewed: 1,
+        stock_unit: 1,
+        sku: 1,
+        images: 1,
+        filter_id: 1,
+        store_id: 1,
+        category_id: 1,
+        location_id: 1,
+        status: 1,
+        created_by: 1,
+        created_at: 1,
+        updated_by: 1,
+        updated_at: 1,
+        "category_data._id": 1,
+        "category_data.name": 1,
+        "category_data.category_id": 1,
+        "filter_data._id": 1,
+        "filter_data.name": 1,
+        "filter_data.filter_id": 1,
+      },
+    },
   ]);
   // -------------------------end-------------------------------------------
   // const data = await productModel.find(query).skip(startIndex).limit(limit);
@@ -83,7 +110,20 @@ const createData = catchAsyncError(async (req, res, next) => {
     imageData = await imageUpload(req.files.images, next);
   }
   console.log("imageData", imageData);
-  let newData = { ...req.body, images: imageData };
+
+  let newIdserial;
+  let newIdNo;
+  let newId;
+  const lastDoc = await productModel.find().sort({ _id: -1 });
+  if (lastDoc.length > 0) {
+    newIdserial = lastDoc[0].product_id.slice(0, 1);
+    newIdNo = parseInt(lastDoc[0].product_id.slice(1)) + 1;
+    newId = newIdserial.concat(newIdNo);
+  } else {
+    newId = "p100";
+  }
+
+  let newData = { ...req.body, images: imageData, product_id: newId };
   console.log("newData", newData);
   const data = await productModel.create(newData);
   res.send({ message: "success", status: 201, data: data });

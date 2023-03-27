@@ -1,9 +1,13 @@
 const mongoose = require("mongoose");
 
 const filterSchema = mongoose.Schema({
+  filter_id: {
+    type: String,
+    required: [true, "Please enter filter id"],
+  },
   name: {
     type: String,
-    required: [true, "Please enter category name"],
+    required: [true, "Please enter filter name"],
     trim: true,
     unique: true,
   },
@@ -40,8 +44,9 @@ const saveData = async () => {
   console.log("totalData 123456", totalData);
   if (totalData < 1) {
     const filterDoc = new filterModel({
+      filter_id: "f100",
       name: "Primary",
-      parent_name: "None",
+      parent_name: "Primary",
     });
     await filterDoc.save();
   }

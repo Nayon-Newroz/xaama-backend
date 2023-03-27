@@ -3,7 +3,7 @@ const ErrorHander = require("../utils/errorHandler");
 const catchAsyncError = require("../middleware/catchAsyncError");
 
 const getParentDropdown = catchAsyncError(async (req, res, next) => {
-  const data = await locationModel.find({}, "name").lean();
+  const data = await locationModel.find({}, "name location_id").lean();
   res.status(200).json({
     success: true,
     message: "successful",
@@ -48,10 +48,21 @@ const getById = catchAsyncError(async (req, res, next) => {
 });
 
 const createData = catchAsyncError(async (req, res, next) => {
-  // Category id start number 10000
-  let newData = req.body;
+  let newIdserial;
+  let newIdNo;
+  let newId;
+  const lastDoc = await locationModel.find().sort({ _id: -1 });
+  if (lastDoc.length > 0) {
+    newIdserial = lastDoc[0].location_id.slice(0, 1);
+    newIdNo = parseInt(lastDoc[0].location_id.slice(1)) + 1;
+    newId = newIdserial.concat(newIdNo);
+  } else {
+    newId = "l100";
+  }
 
-  const data = await locationModel.create(req.body);
+  let newData = { ...req.body, location_id: newId };
+
+  const data = await locationModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 
