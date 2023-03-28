@@ -20,6 +20,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const limit = parseInt(req.query.limit) || 10;
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+  const minPrice = req.query.minPrice;
+  const maxPrice = req.query.maxPrice;
   var query = {};
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
@@ -27,14 +29,35 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.status) {
     query.status = req.query.status;
   }
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
+
+  if (req.query.sku) {
+    query.sku = new RegExp(`^${req.query.sku}$`, "i");
+  }
+  if (req.query.category_id) {
+    query.category_id = new RegExp(`^${req.query.category_id}$`, "i");
+  }
+  if (parseInt(minPrice) && parseInt(maxPrice)) {
+    query.price = {
+      $gte: parseInt(minPrice),
+      $lte: parseInt(maxPrice),
+    };
+  } else if (parseInt(minPrice)) {
+    query.price = {
+      $gte: parseInt(minPrice),
+    };
+  } else if (parseInt(maxPrice)) {
+    query.price = {
+      $lte: parseInt(maxPrice),
+    };
   }
   let totalData = await productModel.countDocuments(query);
   console.log("totalData=================================", totalData);
 
   // -------------------------start-------------------------------------------
   const data = await productModel.aggregate([
+    {
+      $match: query,
+    },
     {
       $lookup: {
         from: "categories",
@@ -80,6 +103,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "filter_data.name": 1,
         "filter_data.filter_id": 1,
       },
+    },
+    {
+      $sort: { created_at: -1 },
+    },
+    {
+      $skip: startIndex,
+    },
+    {
+      $limit: limit,
     },
   ]);
   // -------------------------end-------------------------------------------

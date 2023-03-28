@@ -31,13 +31,14 @@ const productSchema = mongoose.Schema({
 
   rating: [
     {
-      user: {
+      total_user: {
         type: String,
-        // default: "user",
+        default: 5,
         // required: true,
       },
-      rating_no: {
+      total_rating_no: {
         type: Number,
+        default: 23,
         // required: true,
       },
     },
