@@ -22,6 +22,8 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const endIndex = page * limit;
   const minPrice = req.query.minPrice;
   const maxPrice = req.query.maxPrice;
+  const startDate = req.query.startDate;
+  const endDate = req.query.endDate;
   var query = {};
   if (req.query.name) {
     query.name = new RegExp(`^${req.query.name}$`, "i");
@@ -50,6 +52,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lte: parseInt(maxPrice),
     };
   }
+  console.log("startDate", startDate);
+  if (startDate && endDate) {
+    query.created_at = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
+  }
+  // else if (startDate) {
+  //   query.created_at = {
+  //     $gte: new Date(`${startDate}T00:00:00.000Z`),
+  //   };
+  // } else if (endDate) {
+  //   query.created_at = {
+  //     $lte: new Date(`${endDate}T23:59:59.999Z`),
+  //   };
+  // }
   let totalData = await productModel.countDocuments(query);
   console.log("totalData=================================", totalData);
 
