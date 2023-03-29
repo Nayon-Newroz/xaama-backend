@@ -59,15 +59,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $lte: new Date(`${endDate}T23:59:59.999Z`),
     };
   }
-  // else if (startDate) {
-  //   query.created_at = {
-  //     $gte: new Date(`${startDate}T00:00:00.000Z`),
-  //   };
-  // } else if (endDate) {
-  //   query.created_at = {
-  //     $lte: new Date(`${endDate}T23:59:59.999Z`),
-  //   };
-  // }
+  else if (startDate) {
+    query.created_at = {
+      $gte: new Date(`${startDate}T00:00:00.000Z`),
+    };
+  } else if (endDate) {
+    query.created_at = {
+      $lte: new Date(`${endDate}T23:59:59.999Z`),
+    };
+  }
   let totalData = await productModel.countDocuments(query);
   console.log("totalData=================================", totalData);
 
