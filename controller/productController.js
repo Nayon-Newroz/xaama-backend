@@ -58,8 +58,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
       $gte: new Date(`${startDate}T00:00:00.000Z`),
       $lte: new Date(`${endDate}T23:59:59.999Z`),
     };
-  }
-  else if (startDate) {
+  } else if (startDate) {
     query.created_at = {
       $gte: new Date(`${startDate}T00:00:00.000Z`),
     };
@@ -118,6 +117,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
         "category_data.name": 1,
         "category_data.category_id": 1,
         "filter_data._id": 1,
+        "filter_data.parent_name": 1,
         "filter_data.name": 1,
         "filter_data.filter_id": 1,
       },
@@ -125,6 +125,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     {
       $sort: { created_at: -1 },
     },
+  
     {
       $skip: startIndex,
     },

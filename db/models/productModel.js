@@ -52,6 +52,11 @@ const productSchema = mongoose.Schema({
     default: 100,
     min: [0, "Sorry! out of stock"],
   },
+  total_sales: {
+    type: Number,
+    default: 0,
+    min: [0, "Sorry! sales can't be less than 0"],
+  },
   sku: {
     type: String,
     // required: [true, "Please enter the product name"],
