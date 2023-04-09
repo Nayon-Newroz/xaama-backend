@@ -125,7 +125,7 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
     {
       $sort: { created_at: -1 },
     },
-  
+
     {
       $skip: startIndex,
     },
@@ -190,7 +190,7 @@ const updateData = async (req, res, next) => {
     }
 
     // deleting previous images
-    if (data.images.length > 0) {
+    if (req.files && data.images.length > 0) {
       for (let index = 0; index < data.images.length; index++) {
         const element = data.images[index];
         await imageDelete(element.public_id);
@@ -198,11 +198,14 @@ const updateData = async (req, res, next) => {
     }
     //uploading new images
     let imageData = [];
+    let newData = {};
     if (req.files) {
       imageData = await imageUpload(req.files.images, next);
     }
     console.log("imageData", imageData);
-    let newData = { ...req.body, images: imageData };
+    if (imageData.length > 0) {
+      newData = { ...req.body, images: imageData };
+    }
     console.log("newData", newData);
     let updateData = await productModel.findByIdAndUpdate(
       req.params.id,
