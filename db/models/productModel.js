@@ -85,6 +85,11 @@ const productSchema = mongoose.Schema({
     default: "N/A",
     // required: [true, "Please enter the product category"],
   },
+  vaucher_id: {
+    type: String,
+    default: "N/A",
+    // required: [true, "Please enter the product category"],
+  },
   category_id: {
     type: String,
     // required: [true, "Please enter the product category"],
