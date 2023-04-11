@@ -50,7 +50,7 @@ const productSchema = mongoose.Schema({
   stock_unit: {
     type: Number,
     default: 100,
-    min: [0, "Sorry! out of stock"],
+    min: [0, "Sorry! required stock is not available"],
   },
   total_sales: {
     type: Number,

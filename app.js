@@ -15,6 +15,7 @@ var productsRouter = require("./routes/products");
 var locationsRouter = require("./routes/locations");
 var categoryRouter = require("./routes/category");
 var filterRouter = require("./routes/filter");
+var orderRouter = require("./routes/order");
 
 const errorMiddleware = require("./middleware/error");
 // Database connection
@@ -57,6 +58,7 @@ app.use("/api/v1/product", productsRouter);
 app.use("/api/v1/location", locationsRouter);
 app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/filter", filterRouter);
+app.use("/api/v1/order", orderRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);
