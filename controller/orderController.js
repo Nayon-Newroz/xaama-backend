@@ -49,12 +49,13 @@ const getById = catchAsyncError(async (req, res, next) => {
   res.send({ message: "success", status: 200, data: data });
 });
 
-const createData = catchAsyncError(async (req, res, next) => {
-  // updating product stock unit ----------------------------
+const updateOrderProduct = async (req, res) => {
+  let isProductStockUpdateSuccess = true;
+  // console.log("updateOrderProduct", req.body);
   let productIds = req.body.order_list.map((item) =>
     item.product_id.toString()
   );
-  console.log("productIds", productIds);
+  // console.log("productIds", productIds);
 
   if (productIds.length > 0) {
     let products = await productModel.find({
@@ -63,41 +64,87 @@ const createData = catchAsyncError(async (req, res, next) => {
 
     // console.log("products", products);
     if (products.length > 0) {
-      let quantityUpdatedProduct = req.body.order_list.map((item) => {
+      // checking the product stock. if it is less than stock .then returning those products
+      let inAvailableProduct = [];
+      req.body.order_list.map((item) => {
         let dbProduct = products.find(
           (res) => res.product_id === item.product_id
         );
-        dbProduct.stock_unit =
-          parseInt(dbProduct.stock_unit) - parseInt(item.quantity);
+        console.log(
+          "parseInt(dbProduct.stock_unit) - parseInt(item.quantity)",
+          parseInt(dbProduct.stock_unit),
+          parseInt(item.quantity)
+        );
+        if (parseInt(dbProduct.stock_unit) - parseInt(item.quantity) < 0) {
+          inAvailableProduct.push(item);
+        }
+      });
+      console.log("inAvailableProduct", inAvailableProduct);
+      if (inAvailableProduct.length > 0) {
+        isProductStockUpdateSuccess = false;
+        let productNames = inAvailableProduct.map((item) => item.name);
+        console.log("productNames", productNames.toString());
+        return res.status(400).json({
+          success: false,
+          message: `${productNames.toString()} requested stock is not available`,
+          data: inAvailableProduct,
+        });
+      } else {
+        let quantityUpdatedProduct = req.body.order_list.map((item) => {
+          let dbProduct = products.find(
+            (res) => res.product_id === item.product_id
+          );
+          dbProduct.stock_unit =
+            parseInt(dbProduct.stock_unit) - parseInt(item.quantity);
 
-        new Promise((resolve, reject) => {
-          productModel
-            .findByIdAndUpdate(dbProduct._id, dbProduct, {
+          // new Promise((resolve, reject) => {
+          //   productModel
+          //     .findByIdAndUpdate(dbProduct._id, dbProduct, {
+          //       new: true,
+          //       runValidators: true,
+          //       useFindAndModified: false,
+          //     })
+          //     .then((updatedObj) => {
+          //       if (!updatedObj) {
+          //         reject(next(new ErrorHander("No data found", 404)));
+          //       } else {
+          //         resolve(updatedObj);
+          //       }
+          //     })
+          //     .catch((err) => reject(err));
+          // });
+
+          console.log("dbProduct", dbProduct);
+          return dbProduct;
+        });
+        if (quantityUpdatedProduct.length > 0) {
+          const promises = quantityUpdatedProduct.map((item) =>
+            productModel.findByIdAndUpdate(item._id, item, {
               new: true,
               runValidators: true,
               useFindAndModified: false,
             })
-            .then((updatedObj) => {
-              if (!updatedObj) {
-                reject(next(new ErrorHander("No data found", 404)));
-              } else {
-                resolve(updatedObj);
-              }
-            })
-            .catch((err) => reject(err));
-        });
-
-        return dbProduct;
-        // console.log("dbProduct", dbProduct);
-      });
-      console.log("quantityUpdatedProduct", quantityUpdatedProduct);
+          );
+          let result = await Promise.all(promises);
+          console.log("result", result);
+        }
+        console.log("quantityUpdatedProduct", quantityUpdatedProduct);
+      }
     }
-  } else {
-    next(new ErrorHander("Product stock update problem", 404));
   }
+  // else {
+  //   next(new ErrorHander("Product stock update problem", 404));
+  // }
+  return isProductStockUpdateSuccess;
+};
+
+const createData = catchAsyncError(async (req, res, next) => {
   // updating product stock unit ----------------------------
+  let updateAllProuctStock = await updateOrderProduct(req, res);
+  console.log("updateAllProuctStock", updateAllProuctStock);
+  // updating product stock unit ----------------------------end
   // console.log("req.body", req.body);
-  return;
+   
   let newIdserial;
   let newIdNo;
   let newId;
@@ -107,47 +154,41 @@ const createData = catchAsyncError(async (req, res, next) => {
     newIdNo = parseInt(lastDoc[0].order_id.slice(1)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
-    newId = "100001";
+    newId = "o100001";
   }
 
   // create entry in order collections
-
+  let productDetails = [];
   req.body.order_list.map((item) => {
-    let newData = {
-      order_id: newId,
-      customer_name: req.body.customer_name,
-      customer_address: req.body.customer_address,
-      customer_email: req.body.customer_email,
-      customer_phone: req.body.customer_phone,
-      product_details: {
-        product_id: item._id,
-        product_name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        discount_price: item.discount_price,
-      },
-      discount: req.body.discount,
-      tax: req.body.tax,
-      payment_method: req.body.payment_method,
-      transaction_type: req.body.transaction_type,
-      transaction_id: req.body.transaction_id,
-      amount_paid: req.body.amount_paid,
-      shipping_address: req.body.shipping_address,
-      
-    };
+    productDetails.push({
+      product_id: item._id,
+      images: item.images,
+      product_name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      discount_price: item.discount_price,
+    });
   });
 
   let newData = {
     order_id: newId,
     customer_name: req.body.customer_name,
-    customer_email: email,
-    customer_phone: phoneNo,
-    customer_address: address,
-    order_list: orderItems,
+    customer_address: req.body.customer_address,
+    customer_email: req.body.customer_email,
+    customer_phone: req.body.customer_phone,
+    product_details: productDetails,
+    discount: req.body.discount,
+    tax: req.body.tax,
+    payment_method: req.body.payment_method,
+    transaction_type: req.body.transaction_type,
+    transaction_id: req.body.transaction_id,
+    amount_paid: req.body.amount_paid,
+    total_amount: req.body.total_amount,
+    shipping_address: req.body.shipping_address,
   };
-  // let newData = { ...req.body, order_id: newId };
 
-  const data = await categoryModel.create(newData);
+  console.log("newData------------------------------------------", newData);
+  const data = await orderModel.create(newData);
   res.send({ message: "success", status: 201, data: data });
 });
 

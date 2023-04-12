@@ -3,29 +3,38 @@ const mongoose = require("mongoose");
 const OrderSchema = new mongoose.Schema({
   order_id: {
     type: String,
-    required: true,
+    required: [true, "Please enter order id"],
+  },
+  customer_id: {
+    type: String,
+    default: "N/A",
   },
   customer_name: {
     type: String,
-    required: true,
+    required: [true, "Please enter customer name"],
   },
   customer_address: {
     type: String,
-    required: true,
+    required: [true, "Please enter customer address"],
   },
   customer_email: {
     type: String,
-    required: true,
+    // required: true,
+    default: "N/A",
   },
   customer_phone: {
     type: String,
-    required: true,
+    required: [true, "Please enter customer phone number"],
   },
   product_details: [
     {
       product_id: {
         type: String,
         required: true,
+      },
+      images: {
+        type: Array,
+        // required: true,
       },
       product_name: {
         type: String,
@@ -53,11 +62,11 @@ const OrderSchema = new mongoose.Schema({
   transaction_type: {
     type: String,
     enum: ["Online", "Offline"],
-    required: true,
+    required: [true, "Please enter transaction type"],
   },
   payment_method: {
     type: String,
-    required: true,
+    required: [true, "Please enter transaction method"],
   },
 
   transaction_id: {
@@ -94,7 +103,7 @@ const OrderSchema = new mongoose.Schema({
   },
   order_status: {
     type: String,
-    enum: ["Pending", "Processing", "Shipped", "Canceled"],
+    enum: ["Pending", "Processing", "Shipped", "Canceled", "Completed"],
     default: "Pending",
   },
   status: {

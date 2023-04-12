@@ -199,7 +199,7 @@ const updateData = async (req, res, next) => {
     }
     //uploading new images
     let imageData = [];
-    let newData = {};
+    let newData = req.body;
     if (req.files) {
       imageData = await imageUpload(req.files.images, next);
     }
