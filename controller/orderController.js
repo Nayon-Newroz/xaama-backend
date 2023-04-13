@@ -28,9 +28,9 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   if (req.query.parent_name) {
     query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
   }
-  let totalData = await categoryModel.countDocuments(query);
+  let totalData = await orderModel.countDocuments(query);
   console.log("totalData=================================", totalData);
-  const data = await categoryModel.find(query).skip(startIndex).limit(limit);
+  const data = await orderModel.find(query).skip(startIndex).limit(limit);
   console.log("data", data);
   res.status(200).json({
     success: true,
@@ -144,7 +144,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   console.log("updateAllProuctStock", updateAllProuctStock);
   // updating product stock unit ----------------------------end
   // console.log("req.body", req.body);
-   
+
   let newIdserial;
   let newIdNo;
   let newId;
@@ -154,7 +154,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     newIdNo = parseInt(lastDoc[0].order_id.slice(1)) + 1;
     newId = newIdserial.concat(newIdNo);
   } else {
-    newId = "o100001";
+    newId = "O100001";
   }
 
   // create entry in order collections
@@ -164,6 +164,7 @@ const createData = catchAsyncError(async (req, res, next) => {
       product_id: item._id,
       images: item.images,
       product_name: item.name,
+      filter_data: item.filter_data,
       quantity: item.quantity,
       price: item.price,
       discount_price: item.discount_price,
@@ -182,7 +183,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     payment_method: req.body.payment_method,
     transaction_type: req.body.transaction_type,
     transaction_id: req.body.transaction_id,
-    amount_paid: req.body.amount_paid,
+    paid_amount: req.body.paid_amount,
     total_amount: req.body.total_amount,
     shipping_address: req.body.shipping_address,
   };
