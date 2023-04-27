@@ -8,6 +8,7 @@ const {
   updateData,
   deleteData,
   getCategoryWiseFilterList,
+  cancelProduct,
 } = require("../controller/orderController");
 const orderModel = require("../db/models/orderModel");
 
@@ -21,5 +22,6 @@ router.route("/create").post(createData);
 router.route("/update/:id").put(updateData);
 router.route("/delete/:id").delete(deleteData);
 router.route("/category-filter-list").post(getCategoryWiseFilterList);
+router.route("/cancel-product").post(cancelProduct);
 
 module.exports = router;

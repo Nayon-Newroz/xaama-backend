@@ -42,11 +42,15 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   });
 });
 const getById = catchAsyncError(async (req, res, next) => {
-  let data = await categoryModel.findById(req.params.id);
+  let data = await orderModel.findById(req.params.id);
   if (!data) {
-    return res.send({ message: "No data found", status: 404 });
+    return next(new ErrorHander("No data found", 404));
   }
-  res.send({ message: "success", status: 200, data: data });
+
+  res.status(200).json({
+    success: true,
+    data: data,
+  });
 });
 
 const updateOrderProduct = async (req, res) => {
@@ -161,9 +165,9 @@ const createData = catchAsyncError(async (req, res, next) => {
   let productDetails = [];
   req.body.order_list.map((item) => {
     productDetails.push({
-      product_id: item._id,
+      product_id: item.product_id,
       images: item.images,
-      product_name: item.name,
+      name: item.name,
       filter_data: item.filter_data,
       quantity: item.quantity,
       price: item.price,
@@ -194,37 +198,85 @@ const createData = catchAsyncError(async (req, res, next) => {
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
-  const { name } = req.body;
-
-  let data = await categoryModel.findById(req.params.id);
-  let oldParentName = data.name;
-
+  let data = await orderModel.findById(req.params.id);
+  console.log("data", data);
   if (!data) {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
   }
 
-  data = await categoryModel.findByIdAndUpdate(req.params.id, req.body, {
+  // create entry in order collections
+  let productDetails = [];
+  req.body.order_list.map((item) => {
+    productDetails.push({
+      product_id: item.product_id,
+      images: item.images,
+      name: item.name,
+      filter_data: item.filter_data,
+      quantity: item.quantity,
+      price: item.price,
+      discount_price: item.discount_price,
+    });
+  });
+  console.log("productDetails", productDetails);
+  // res.status(200).json({
+  //   success: true,
+  //   message: "Update successfully",
+  //   data: req.body.order_list,
+  // });
+
+  let newData = {
+    order_id: data.order_id,
+    customer_name: req.body.customer_name,
+    customer_address: req.body.customer_address,
+    customer_email: req.body.customer_email,
+    customer_phone: req.body.customer_phone,
+    product_details: productDetails,
+    discount: req.body.discount,
+    tax: req.body.tax,
+    payment_method: req.body.payment_method,
+    transaction_type: req.body.transaction_type,
+    transaction_id: req.body.transaction_id,
+    paid_amount: req.body.paid_amount,
+    total_amount: req.body.total_amount,
+    shipping_address: req.body.shipping_address,
+  };
+
+  console.log("newData------------------------------------------", newData);
+
+  data = await orderModel.findByIdAndUpdate(req.params.id, newData, {
     new: true,
     runValidators: true,
     useFindAndModified: false,
   });
 
-  const childrenParentUpdate = await categoryModel.updateMany(
-    { parent_name: oldParentName },
-    { $set: { parent_name: name } }
-  );
   res.status(200).json({
     success: true,
     message: "Update successfully",
     data: data,
-    childrenParentUpdate,
+  });
+});
+const cancelProduct = catchAsyncError(async (req, res, next) => {
+  console.log("req.body", req.body);
+
+  let data = await orderModel.updateOne(
+    { _id: req.body.id },
+    { $pull: { product_details: { product_id: req.body.productId } } }
+    // { new: true }
+  );
+
+  console.log("data", data);
+
+  res.status(200).json({
+    success: true,
+    message: "Update successfully",
+    data: data,
   });
 });
 
 const deleteData = catchAsyncError(async (req, res, next) => {
   console.log("deleteData function is working");
-  let data = await categoryModel.findById(req.params.id);
+  let data = await orderModel.findById(req.params.id);
   console.log("data", data);
   if (!data) {
     console.log("if");
@@ -346,4 +398,5 @@ module.exports = {
   updateData,
   deleteData,
   getCategoryWiseFilterList,
+  cancelProduct,
 };

@@ -36,7 +36,7 @@ const OrderSchema = new mongoose.Schema({
         type: Array,
         // required: true,
       },
-      product_name: {
+      name: {
         type: String,
         required: true,
       },
