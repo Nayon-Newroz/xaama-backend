@@ -19,15 +19,22 @@ const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
   var query = {};
-  if (req.query.name) {
-    query.name = new RegExp(`^${req.query.name}$`, "i");
+  if (req.query.orderID) {
+    query.order_id = new RegExp(`^${req.query.orderID}$`, "i");
+  }
+  if (req.query.customerName) {
+    query.customer_name = new RegExp(`^${req.query.customerName}$`, "i");
+  }
+  if (req.query.customerEmail) {
+    query.customer_email = new RegExp(`^${req.query.customerEmail}$`, "i");
+  }
+  if (req.query.customerPhone) {
+    query.customer_phone = new RegExp(`^${req.query.customerPhone}$`, "i");
   }
   if (req.query.status) {
     query.status = req.query.status;
   }
-  if (req.query.parent_name) {
-    query.parent_name = new RegExp(`^${req.query.parent_name}$`, "i");
-  }
+
   let totalData = await orderModel.countDocuments(query);
   console.log("totalData=================================", totalData);
   const data = await orderModel.find(query).skip(startIndex).limit(limit);
@@ -74,11 +81,11 @@ const updateOrderProduct = async (req, res) => {
         let dbProduct = products.find(
           (res) => res.product_id === item.product_id
         );
-        console.log(
-          "parseInt(dbProduct.stock_unit) - parseInt(item.quantity)",
-          parseInt(dbProduct.stock_unit),
-          parseInt(item.quantity)
-        );
+        // console.log(
+        //   "parseInt(dbProduct.stock_unit) - parseInt(item.quantity)",
+        //   parseInt(dbProduct.stock_unit),
+        //   parseInt(item.quantity)
+        // );
         if (parseInt(dbProduct.stock_unit) - parseInt(item.quantity) < 0) {
           inAvailableProduct.push(item);
         }
@@ -143,6 +150,24 @@ const updateOrderProduct = async (req, res) => {
 };
 
 const createData = catchAsyncError(async (req, res, next) => {
+  // checking product stock in every order item ----------------------------
+  console.log("fififififififfifififfifififi");
+  let productHasNoQuantity = [];
+  for (let index = 0; index < req.body.order_list.length; index++) {
+    const element = req.body.order_list[index];
+    if (element.quantity < 1) {
+      productHasNoQuantity.push(element);
+    }
+  }
+  if (productHasNoQuantity.length > 0) {
+    console.log("fififififififfifififfifififi", productHasNoQuantity);
+    return res.status(400).json({
+      message: "Please enter all products quantity",
+      data: productHasNoQuantity,
+    });
+  }
+
+   
   // updating product stock unit ----------------------------
   let updateAllProuctStock = await updateOrderProduct(req, res);
   console.log("updateAllProuctStock", updateAllProuctStock);
@@ -154,11 +179,13 @@ const createData = catchAsyncError(async (req, res, next) => {
   let newId;
   const lastDoc = await orderModel.find().sort({ _id: -1 });
   if (lastDoc.length > 0) {
-    newIdserial = lastDoc[0].order_id.slice(0, 1);
-    newIdNo = parseInt(lastDoc[0].order_id.slice(1)) + 1;
+    newIdserial = lastDoc[0].order_id.slice(0, 3);
+    newIdNo = parseInt(lastDoc[0].order_id.slice(3)) + 1;
     newId = newIdserial.concat(newIdNo);
+    console.log("newIdserial", newIdserial);
+    console.log("newIdNo", newIdNo);
   } else {
-    newId = "O100001";
+    newId = "ODR100001";
   }
 
   // create entry in order collections
@@ -194,7 +221,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
   console.log("newData------------------------------------------", newData);
   const data = await orderModel.create(newData);
-  res.send({ message: "success", status: 201, data: data });
+  res.status(201).json({ message: "success", data: data });
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
