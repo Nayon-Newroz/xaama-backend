@@ -40,8 +40,8 @@ const OrderSchema = new mongoose.Schema({
         type: String,
         required: true,
       },
-      filter_data:{
-        type:Array
+      filter_data: {
+        type: Array,
       },
       quantity: {
         type: Number,
@@ -52,6 +52,11 @@ const OrderSchema = new mongoose.Schema({
         type: Number,
         min: 0,
         required: true,
+      },
+      discount_price: {
+        type: Number,
+        min: 0,
+        // required: true,
       },
       remarks: {
         type: String,
