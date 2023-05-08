@@ -60,14 +60,18 @@ const getById = catchAsyncError(async (req, res, next) => {
   });
 });
 
-// this function is for managing cancel or update any product or product quantity
-const stockManage = async (cancelProductsOfOldOrderList) => {
+// this function is for managing cancel or update any product quantity
+const fnProductsStockIncrease = async (cancelProductsOfOldOrderList) => {
+  console.log(
+    "cancelProductsOfOldOrderList 2222222222222",
+    cancelProductsOfOldOrderList
+  );
   let products = [];
-
+  console.log("productIds==========");
   let productIds = cancelProductsOfOldOrderList.map((item) =>
     item.product_id.toString()
   );
-  // console.log("productIds", productIds);
+  console.log("productIds", productIds);
 
   if (productIds.length > 0) {
     products = await productModel.find({
@@ -85,14 +89,13 @@ const stockManage = async (cancelProductsOfOldOrderList) => {
   });
   console.log("quantityUpdatedProduct", quantityUpdatedProduct);
   if (quantityUpdatedProduct.length > 0) {
-    const promises = quantityUpdatedProduct.map((item) => 
-     
-        productModel.findByIdAndUpdate(item._id, item, {
+    const promises = quantityUpdatedProduct.map((item) =>
+      productModel.findByIdAndUpdate(item._id, item, {
         new: true,
         runValidators: true,
         useFindAndModified: false,
       })
-    )
+    );
     console.log("promises", promises);
     let result = await Promise.all(promises);
     console.log("result", result);
@@ -265,32 +268,66 @@ const updateData = catchAsyncError(async (req, res, next) => {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
   }
+  let sameProductsWithSameQuantityOfOldOrderList = [];
+  let sameProductsWithChangedQuantityOfOldOrderList = [];
+  let cancelProductsOfOldOrderList = [];
+  data?.product_details.map((item) => {
+    let product = req.body.order_list.find(
+      (res) => res.product_id === item.product_id
+    );
+    console.log("product-----------", product);
+    if (
+      product !== undefined &&
+      parseInt(product.quantity) === parseInt(item.quantity)
+    ) {
+      console.log("---------------if1----------------");
+      sameProductsWithSameQuantityOfOldOrderList.push(item);
+    }
+    if (
+      product !== undefined &&
+      parseInt(product.quantity) !== parseInt(item.quantity)
+    ) {
+      console.log("---------------if2----------------");
+      sameProductsWithChangedQuantityOfOldOrderList.push(item);
+    }
+    if (product === undefined) {
+      console.log("---------------if3----------------");
+      cancelProductsOfOldOrderList.push(item);
+    }
+  });
 
-  let cancelProductsOfOldOrderList = data?.product_details.filter(
-    (item1) =>
-      !req.body.order_list.some(
-        (item2) => item1.product_id === item2.product_id
-      )
-  );
-  // data?.product_details.map((product) => {
-  //   console.log("product======================", product);
-  //   let isProductPresent = req.body.order_list.some(
-  //     (item) => item.product_id === product.product_id
-  //   );
-  //   if (!isProductPresent) {
-  //     cancelProductsOfOldOrderList.push(product);
-  //   }
-  // });
+  //   cancelProductsOfOldOrderList = data?.product_details.filter(
+  //   (item1) =>
+  //     !req.body.order_list.some(
+  //       (item2) => item1.product_id === item2.product_id
+  //     )
+  // );
   console.log(
-    "cancelProductsOfOldOrderList ==========================",
-    cancelProductsOfOldOrderList
+    "sameProductsWithSameQuantityOfOldOrderList",
+    sameProductsWithSameQuantityOfOldOrderList
   );
+  console.log(
+    "sameProductsWithChangedQuantityOfOldOrderList",
+    sameProductsWithChangedQuantityOfOldOrderList
+  );
+  console.log("cancelProductsOfOldOrderList", cancelProductsOfOldOrderList);
+  // console.log(
+  //   "cancelProductsOfOldOrderList.concat(sameProductsWithChangedQuantityOfOldOrderList)",
+  //   cancelProductsOfOldOrderList.concat(
+  //     sameProductsWithChangedQuantityOfOldOrderList
+  //   )
+  // );
   if (cancelProductsOfOldOrderList.length > 0) {
-    let cancelProductsStockManage = await stockManage(cancelProductsOfOldOrderList);
-    // updating product stock unit ----------------------------
-  let productWithQuantity = await updateOrderProduct(req, res);
-  console.log("productWithQuantity", productWithQuantity);
-  // updating product stock unit ----------------------------end
+    // updating cancel product stock unit ----------------------------
+    let cancelProductsStockManage = await fnProductsStockIncrease(
+      cancelProductsOfOldOrderList.concat(
+        sameProductsWithChangedQuantityOfOldOrderList
+      )
+    );
+    // updating product stock unit ----------------------------start
+    // let productWithQuantity = await updateOrderProduct(req, res);
+    // console.log("productWithQuantity", productWithQuantity);
+    // updating product stock unit ----------------------------end
   }
   // res.status(200).json({
   //   success: true,
