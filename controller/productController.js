@@ -13,7 +13,24 @@ const getAll = catchAsyncError(async (req, res, next) => {
     data: data,
   });
 });
+const getDataByProductIds = catchAsyncError(async (req, res, next) => {
+  console.log("req.body 111111111111111", req.body);
+  let productIds = req.body.productIds;
+  console.log("productIds", productIds);
+  let data = [];
+  if (productIds.length > 0) {
+    data = await productModel.find({
+      product_id: { $in: productIds },
+    });
+  }
 
+  console.log("data", data);
+  res.status(200).json({
+    success: true,
+    message: "successful",
+    data: data,
+  });
+});
 const getDataWithPagination = catchAsyncError(async (req, res, next) => {
   const page = parseInt(req.query.page) || 1;
   console.log("===========req.query.page", req.query.page);
@@ -254,6 +271,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
 });
 module.exports = {
   getAll,
+  getDataByProductIds,
   getDataWithPagination,
   getById,
   createData,
