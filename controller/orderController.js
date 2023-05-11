@@ -70,11 +70,15 @@ const fnProductsStockIncrease = async (cancelProductsOfOldOrderList) => {
     "cancelProductsOfOldOrderList 2222222222222",
     cancelProductsOfOldOrderList
   );
+
   let products = [];
   console.log("productIds==========");
-  let productIds = cancelProductsOfOldOrderList.map((item) =>
-    item.product_id.toString()
-  );
+  let productIds = [];
+  if (cancelProductsOfOldOrderList.length > 0) {
+    productIds = cancelProductsOfOldOrderList.map((item) =>
+      item.product_id.toString()
+    );
+  }
   console.log("productIds", productIds);
 
   if (productIds.length > 0) {
@@ -82,30 +86,56 @@ const fnProductsStockIncrease = async (cancelProductsOfOldOrderList) => {
       product_id: { $in: productIds },
     });
   }
-
-  let quantityUpdatedProduct = cancelProductsOfOldOrderList.map((item) => {
+  console.log(
+    "--------------------products---------------------------",
+    products
+  );
+  let quantityUpdatedProduct = cancelProductsOfOldOrderList.map((item, i) => {
     let dbProduct = products.find((res) => res.product_id === item.product_id);
     dbProduct.stock_unit =
       parseInt(dbProduct.stock_unit) + parseInt(item.quantity);
+    console.log(
+      "====================================dbProduct 111111111111===================",
+      i,
+      dbProduct
+    );
 
-    console.log("dbProduct 1111111111111", dbProduct);
     return dbProduct;
   });
-  console.log("quantityUpdatedProduct", quantityUpdatedProduct);
+
+  console.log(
+    "=========================quantityUpdatedProduct ===========================",
+    quantityUpdatedProduct
+  );
+
   if (quantityUpdatedProduct.length > 0) {
-    const promises = quantityUpdatedProduct.map((item) =>
-      productModel.findByIdAndUpdate(item._id, item, {
-        new: true,
-        runValidators: true,
-        useFindAndModified: false,
-      })
+    const promises = quantityUpdatedProduct.map(
+      (item) =>
+        productModel.findByIdAndUpdate(
+          item._id,
+          { stock_unit: item.stock_unit },
+          {
+            new: true,
+            runValidators: true,
+            useFindAndModified: false,
+          }
+        )
+      // productModel.findByIdAndUpdate(item._id, item, {
+      //   new: true,
+      //   runValidators: true,
+      //   useFindAndModified: false,
+      // })
     );
-    console.log("promises", promises);
+    // console.log("promises", promises);
     let result = await Promise.all(promises);
-    console.log("result", result);
+    console.log(
+      "11111111111111111111111111111111 result 111111111111111111111111111111111111111",
+      result
+    );
+    return result;
   }
 };
-const updateOrderProduct = async (orderList, res) => {
+const updateOrderProduct = async (orderList, res, next) => {
   let isProductStockUpdateSuccess = true;
   let productWithQuantity = [];
   console.log("orderList", orderList);
@@ -125,25 +155,20 @@ const updateOrderProduct = async (orderList, res) => {
         let dbProduct = products.find(
           (res) => res.product_id === item.product_id
         );
+        console.log("=================dbProduct==================", dbProduct);
         // console.log(
         //   "parseInt(dbProduct.stock_unit) - parseInt(item.quantity)",
         //   parseInt(dbProduct.stock_unit),
         //   parseInt(item.quantity)
         // );
         if (parseInt(dbProduct.stock_unit) - parseInt(item.quantity) < 0) {
+          // item.stock_unit = dbProduct.stock_unit;
           unavailableProducts.push(item);
         }
       });
       console.log("unavailableProducts", unavailableProducts);
       if (unavailableProducts.length > 0) {
-        isProductStockUpdateSuccess = false;
-        let productNames = unavailableProducts.map((item) => item.name);
-        console.log("productNames", productNames.toString());
-        return res.status(400).json({
-          success: false,
-          message: `${productNames.toString()} requested stock is not available`,
-          data: unavailableProducts,
-        });
+        return { isProductStockUpdateSuccess: false, unavailableProducts };
       } else {
         let quantityUpdatedProduct = orderList.map((item) => {
           let dbProduct = products.find(
@@ -151,7 +176,7 @@ const updateOrderProduct = async (orderList, res) => {
           );
           dbProduct.stock_unit =
             parseInt(dbProduct.stock_unit) - parseInt(item.quantity);
-          //productWithQuantity array is for get the db data and using for create order product list only. For update it is not using
+          //productWithQuantity array is for get the db data and using for create order product list only. For update data function it is not using
           productWithQuantity.push({
             ...dbProduct._doc,
             quantity: item.quantity,
@@ -172,13 +197,13 @@ const updateOrderProduct = async (orderList, res) => {
           console.log("result", result);
         }
         console.log("quantityUpdatedProduct", quantityUpdatedProduct);
+        return { isProductStockUpdateSuccess: true, productWithQuantity };
       }
     }
   }
   // else {
   //   next(new ErrorHander("Product stock update problem", 404));
   // }
-  return productWithQuantity;
 };
 
 const createData = catchAsyncError(async (req, res, next) => {
@@ -201,7 +226,25 @@ const createData = catchAsyncError(async (req, res, next) => {
   let productWithQuantity = [];
   // updating product stock unit ----------------------------
   if (req.body.order_list.length > 0) {
-    productWithQuantity = await updateOrderProduct(req.body.order_list, res);
+    updateOrderProductResult = await updateOrderProduct(
+      req.body.order_list,
+      res,
+      next
+    );
+    if (updateOrderProductResult.isProductStockUpdateSuccess) {
+      productWithQuantity = updateOrderProductResult.productWithQuantity;
+    } else {
+      let productNames = updateOrderProductResult.unavailableProducts.map(
+        (item) => item.name
+      );
+      console.log("productNames", productNames.toString());
+
+      return res.status(400).json({
+        success: false,
+        message: `${productNames.toString()} requested stock is not available`,
+        data: updateOrderProductResult.unavailableProducts,
+      });
+    }
     console.log("productWithQuantity", productWithQuantity);
   }
   // updating product stock unit ----------------------------end
@@ -220,7 +263,7 @@ const createData = catchAsyncError(async (req, res, next) => {
   } else {
     newId = "ODR100001";
   }
-
+  console.log("newId========================", newId);
   // create entry of order list
   let productDetails = [];
   let total_amount = 0;
@@ -273,33 +316,46 @@ const updateData = catchAsyncError(async (req, res, next) => {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
   }
-  let sameProductsWithSameQuantityOfOldOrderList = [];
-  let sameProductsWithChangedQuantityOfOldOrderList = [];
-  let newRequestedSameProductsWithChangedQuantityOfOldOrderList = [];
+
+  let decreasedQuantityProducts = [];
+  let increasedQuantityProducts = [];
+
   let cancelProductsOfOldOrderList = [];
-  data?.product_details.map((item) => {
-    let product = req.body.order_list.find(
-      (res) => res.product_id === item.product_id
+  data?.product_details.map((DBOrderListProduct) => {
+    let newOrderListProduct = req.body.order_list.find(
+      (res) => res.product_id === DBOrderListProduct.product_id
     );
-    console.log("product-----------", product);
-    if (
-      product !== undefined &&
-      parseInt(product.quantity) === parseInt(item.quantity)
+    console.log("newOrderListProduct-----------", newOrderListProduct);
+    // console.log(
+    //   "---------------DBOrderListProduct.quantity----------------",
+    //   DBOrderListProduct.quantity
+    // );
+    // console.log(
+    //   "---------------newOrderListProduct.quantity----------------",
+    //   newOrderListProduct.quantity
+    // );
+    if (newOrderListProduct === undefined) {
+      console.log("---------------if3----------------");
+      cancelProductsOfOldOrderList.push(DBOrderListProduct);
+    } else if (
+      parseInt(newOrderListProduct.quantity) <
+      parseInt(DBOrderListProduct.quantity)
     ) {
       console.log("---------------if1----------------");
-      sameProductsWithSameQuantityOfOldOrderList.push(item);
-    }
-    if (
-      product !== undefined &&
-      parseInt(product.quantity) !== parseInt(item.quantity)
+
+      (DBOrderListProduct.quantity =
+        parseInt(DBOrderListProduct.quantity) -
+        parseInt(newOrderListProduct.quantity)),
+        decreasedQuantityProducts.push(DBOrderListProduct);
+    } else if (
+      parseInt(newOrderListProduct.quantity) >
+      parseInt(DBOrderListProduct.quantity)
     ) {
       console.log("---------------if2----------------");
-      sameProductsWithChangedQuantityOfOldOrderList.push(item);
-      newRequestedSameProductsWithChangedQuantityOfOldOrderList.push(product);
-    }
-    if (product === undefined) {
-      console.log("---------------if3----------------");
-      cancelProductsOfOldOrderList.push(item);
+      (DBOrderListProduct.quantity =
+        parseInt(newOrderListProduct.quantity) -
+        parseInt(DBOrderListProduct.quantity)),
+        increasedQuantityProducts.push(DBOrderListProduct);
     }
   });
 
@@ -309,95 +365,104 @@ const updateData = catchAsyncError(async (req, res, next) => {
   //       (item2) => item1.product_id === item2.product_id
   //     )
   // );
+
   console.log(
-    "sameProductsWithSameQuantityOfOldOrderList",
-    sameProductsWithSameQuantityOfOldOrderList
+    "================decreasedQuantityProducts===================",
+    decreasedQuantityProducts
   );
   console.log(
-    "sameProductsWithChangedQuantityOfOldOrderList",
-    sameProductsWithChangedQuantityOfOldOrderList
+    "================increasedQuantityProducts===================",
+    increasedQuantityProducts
   );
-  console.log("cancelProductsOfOldOrderList", cancelProductsOfOldOrderList);
   console.log(
-    "newRequestedSameProductsWithChangedQuantityOfOldOrderList",
-    newRequestedSameProductsWithChangedQuantityOfOldOrderList
+    "================cancelProductsOfOldOrderList===================",
+    cancelProductsOfOldOrderList
   );
-  // console.log(
-  //   "cancelProductsOfOldOrderList.concat(sameProductsWithChangedQuantityOfOldOrderList)",
-  //   cancelProductsOfOldOrderList.concat(
-  //     sameProductsWithChangedQuantityOfOldOrderList
-  //   )
-  // );
-  if (
-    cancelProductsOfOldOrderList.length > 0 ||
-    newRequestedSameProductsWithChangedQuantityOfOldOrderList.length > 0
-  ) {
-    // updating cancel product stock unit ----------------------------
-    let cancelProductsStockManage = await fnProductsStockIncrease(
-      cancelProductsOfOldOrderList.concat(
-        sameProductsWithChangedQuantityOfOldOrderList
-      )
-    );
-    console.log("cancelProductsStockManage", cancelProductsStockManage);
-  }
-  if (newRequestedSameProductsWithChangedQuantityOfOldOrderList.length > 0) {
+
+  if (increasedQuantityProducts.length > 0) {
     // updating product stock unit ----------------------------start
-    let productWithQuantity = await updateOrderProduct(
-      newRequestedSameProductsWithChangedQuantityOfOldOrderList,
-      res
+    let updateOrderProductResult = await updateOrderProduct(
+      increasedQuantityProducts,
+      res,
+      next
     );
-    console.log("productWithQuantity", productWithQuantity);
+    if (updateOrderProductResult.isProductStockUpdateSuccess) {
+      productWithQuantity = updateOrderProductResult.productWithQuantity;
+    } else {
+      let productNames = updateOrderProductResult.unavailableProducts.map(
+        (item) => item.name
+      );
+      console.log(
+        "------------------------updateOrderProductResult.unavailableProducts----------------",
+        updateOrderProductResult.unavailableProducts
+      );
+      console.log("productNames", productNames.toString());
+
+      return res.status(400).json({
+        success: false,
+        message: `${productNames.toString()} requested stock is not available`,
+        data: updateOrderProductResult.unavailableProducts,
+      });
+    }
+    console.log("--------------------------run--------------------");
+    // console.log("productWithQuantity", productWithQuantity);
     // updating product stock unit ----------------------------end
     // 333
   }
 
-  // create entry in order collections
-  // let productDetails = [];
-  // req.body.order_list.map((item) => {
-  //   productDetails.push({
-  //     product_id: item.product_id,
-  //     images: item.images,
-  //     name: item.name,
-  //     filter_data: item.filter_data,
-  //     quantity: item.quantity,
-  //     price: item.price,
-  //     discount_price: item.discount_price,
-  //   });
-  // });
-  // console.log("productDetails", productDetails);
+  if (
+    cancelProductsOfOldOrderList.length > 0 ||
+    decreasedQuantityProducts.length > 0
+  ) {
+    // updating cancel product stock unit ----------------------------
+    let cancelProductsStockManage = await fnProductsStockIncrease(
+      cancelProductsOfOldOrderList.concat(decreasedQuantityProducts)
+    );
+
+    console.log(
+      "cancelProductsStockManage ------------------",
+      cancelProductsStockManage
+    );
+  }
 
   // create entry of order list
 
   let productIds = req.body.order_list.map((item) =>
     item.product_id.toString()
   );
-  // console.log("productIds", productIds);
-  let productWithQuantityOfDB = [];
-  if (productIds.length > 0) {
-    let products = await productModel.find({
-      product_id: { $in: productIds },
-    });
+  console.log(
+    "======================productIds 222222222====================",
+    productIds
+  );
+  // let productWithQuantityOfDB = [];
+  // if (productIds.length > 0) {
+  //   let products = await productModel.find({
+  //     product_id: { $in: productIds },
+  //   });
 
-    req.body.order_list.map((item) => {
-      let dbProduct = products.find(
-        (res) => res.product_id === item.product_id
-      );
-
-      productWithQuantityOfDB.push({
-        ...dbProduct._doc,
-        quantity: item.quantity,
-        filter_data: item.filter_data,
-        price: item.price, // keeping the previous price
-        discount_price: item.discount_price, // keeping the previous discount price
-      });
-      console.log("dbProduct", dbProduct);
-      // return dbProduct;
-    });
-  }
+  //   req.body.order_list.map((item) => {
+  //     let dbProduct = products.find(
+  //       (res) => res.product_id === item.product_id
+  //     );
+  //     console.log("5555555555555555555 dbProduct 55555555555555555", {
+  //       ...dbProduct,
+  //       quantity: item.quantity,
+  //     });
+  //     productWithQuantityOfDB.push({
+  //       ...dbProduct._doc,
+  //       quantity: item.quantity,
+  //       filter_data: item.filter_data,
+  //       price: item.price, // keeping the previous price
+  //       discount_price: item.discount_price, // keeping the previous discount price
+  //     });
+  //     console.log("dbProduct", dbProduct);
+  //     // return dbProduct;
+  //   });
+  // }
 
   let productDetails = [];
   let total_amount = 0;
-  productWithQuantityOfDB.map((item) => {
+  req.body.order_list.map((item) => {
     if (parseInt(item.discount_price) > 0) {
       total_amount += item.quantity * item.discount_price;
     } else {
@@ -418,22 +483,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     productDetails
   );
 
-  // let newData = {
-  //   order_id: data.order_id,
-  //   customer_name: req.body.customer_name,
-  //   customer_address: req.body.customer_address,
-  //   customer_email: req.body.customer_email,
-  //   customer_phone: req.body.customer_phone,
-  //   product_details: productDetails,
-  //   discount: req.body.discount,
-  //   tax: req.body.tax,
-  //   payment_method: req.body.payment_method,
-  //   transaction_type: req.body.transaction_type,
-  //   transaction_id: req.body.transaction_id,
-  //   paid_amount: req.body.paid_amount,
-  //   total_amount: req.body.total_amount,
-  //   shipping_address: req.body.shipping_address,
-  // };
+   
 
   let newData = {
     order_id: data.order_id,

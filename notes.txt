@@ -6,21 +6,12 @@
 
 =>need to check urlEncodded for det API
 
-=> add product a price and deicount price decimal korte hobe and check korte hobe compare kore kivabe (ex : max price 100.50 and min price 10)
+=> add product a price and discount price decimal korte hobe and check korte hobe compare kore kivabe (ex : max price 100.50 and min price 10)
 
 
-const arr = [{"color":"red"},{"color":"blue"},{"size":"s"},{"size":"m"}];
 
-const result = arr.reduce((acc, curr) => {
-  const key = Object.keys(curr)[0];
-  if (acc[key]) {
-    acc[key].push(curr[key]);
-  } else {
-    acc[key] = [curr[key]];
-  }
-  return acc;
-}, {});
+return res.status(400).json({
+    message: "testing",
+  });
 
-const finalResult = Object.entries(result).map(([key, value]) => ({[key]: value}));
-
-console.log(finalResult);
+ 
