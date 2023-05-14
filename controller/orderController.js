@@ -208,7 +208,7 @@ const updateOrderProduct = async (orderList, res, next) => {
 
 const createData = catchAsyncError(async (req, res, next) => {
   // checking product stock in every order item ----------------------------
-  console.log("fififififififfifififfifififi");
+
   let productHasNoQuantity = [];
   for (let index = 0; index < req.body.order_list.length; index++) {
     const element = req.body.order_list[index];
@@ -217,7 +217,6 @@ const createData = catchAsyncError(async (req, res, next) => {
     }
   }
   if (productHasNoQuantity.length > 0) {
-    console.log("fififififififfifififfifififi", productHasNoQuantity);
     return res.status(400).json({
       message: "Please enter all products quantity",
       data: productHasNoQuantity,
@@ -287,6 +286,7 @@ const createData = catchAsyncError(async (req, res, next) => {
     "-----------------------------productDetails---------------------------",
     productDetails
   );
+  let newTotal = total_amount - parseInt(req.body.discount);
   let newData = {
     order_id: newId,
     customer_name: req.body.customer_name,
@@ -300,18 +300,26 @@ const createData = catchAsyncError(async (req, res, next) => {
     transaction_type: req.body.transaction_type,
     transaction_id: req.body.transaction_id,
     paid_amount: req.body.paid_amount,
-    total_amount: total_amount,
+    total_amount: newTotal + (newTotal * parseInt(req.body.tax)) / 100,
     shipping_address: req.body.shipping_address,
   };
 
   console.log("newData------------------------------------------", newData);
+  console.log(
+    "total_amount------------------------------------------",
+    total_amount,
+    newTotal
+  );
   const data = await orderModel.create(newData);
   res.status(201).json({ message: "success", data: data });
 });
 
 const updateData = catchAsyncError(async (req, res, next) => {
   let data = await orderModel.findById(req.params.id);
-  console.log("updateData data", data);
+  console.log(
+    "updateData data ===========================================",
+    data
+  );
   if (!data) {
     console.log("if");
     return next(new ErrorHander("No data found", 404));
@@ -319,21 +327,13 @@ const updateData = catchAsyncError(async (req, res, next) => {
 
   let decreasedQuantityProducts = [];
   let increasedQuantityProducts = [];
-
   let cancelProductsOfOldOrderList = [];
   data?.product_details.map((DBOrderListProduct) => {
     let newOrderListProduct = req.body.order_list.find(
       (res) => res.product_id === DBOrderListProduct.product_id
     );
     console.log("newOrderListProduct-----------", newOrderListProduct);
-    // console.log(
-    //   "---------------DBOrderListProduct.quantity----------------",
-    //   DBOrderListProduct.quantity
-    // );
-    // console.log(
-    //   "---------------newOrderListProduct.quantity----------------",
-    //   newOrderListProduct.quantity
-    // );
+
     if (newOrderListProduct === undefined) {
       console.log("---------------if3----------------");
       cancelProductsOfOldOrderList.push(DBOrderListProduct);
@@ -359,26 +359,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
     }
   });
 
-  //   cancelProductsOfOldOrderList = data?.product_details.filter(
-  //   (item1) =>
-  //     !req.body.order_list.some(
-  //       (item2) => item1.product_id === item2.product_id
-  //     )
-  // );
-
-  console.log(
-    "================decreasedQuantityProducts===================",
-    decreasedQuantityProducts
-  );
-  console.log(
-    "================increasedQuantityProducts===================",
-    increasedQuantityProducts
-  );
-  console.log(
-    "================cancelProductsOfOldOrderList===================",
-    cancelProductsOfOldOrderList
-  );
-
   if (increasedQuantityProducts.length > 0) {
     // updating product stock unit ----------------------------start
     let updateOrderProductResult = await updateOrderProduct(
@@ -392,11 +372,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
       let productNames = updateOrderProductResult.unavailableProducts.map(
         (item) => item.name
       );
-      console.log(
-        "------------------------updateOrderProductResult.unavailableProducts----------------",
-        updateOrderProductResult.unavailableProducts
-      );
-      console.log("productNames", productNames.toString());
 
       return res.status(400).json({
         success: false,
@@ -405,9 +380,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
       });
     }
     console.log("--------------------------run--------------------");
-    // console.log("productWithQuantity", productWithQuantity);
-    // updating product stock unit ----------------------------end
-    // 333
   }
 
   if (
@@ -417,11 +389,6 @@ const updateData = catchAsyncError(async (req, res, next) => {
     // updating cancel product stock unit ----------------------------
     let cancelProductsStockManage = await fnProductsStockIncrease(
       cancelProductsOfOldOrderList.concat(decreasedQuantityProducts)
-    );
-
-    console.log(
-      "cancelProductsStockManage ------------------",
-      cancelProductsStockManage
     );
   }
 
@@ -482,9 +449,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     "-----------------------------productDetails---------------------------",
     productDetails
   );
-
-   
-
+  let newTotal = total_amount - parseInt(req.body.discount);
   let newData = {
     order_id: data.order_id,
     customer_name: req.body.customer_name,
@@ -498,7 +463,7 @@ const updateData = catchAsyncError(async (req, res, next) => {
     transaction_type: req.body.transaction_type,
     transaction_id: req.body.transaction_id,
     paid_amount: req.body.paid_amount,
-    total_amount: total_amount,
+    total_amount: newTotal + (newTotal * parseInt(req.body.tax)) / 100,
     shipping_address: req.body.shipping_address,
   };
 
