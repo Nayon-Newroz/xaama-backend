@@ -102,6 +102,11 @@ const OrderSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  shipping_type: {
+    type: String,
+    required: true,
+    default: "Regular",
+  },
   tracking_info: {
     type: String,
     default: "store",
