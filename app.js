@@ -10,7 +10,7 @@ require("dotenv").config();
 const conntectDB = require("./db/database");
 // Routes Imports
 var indexRouter = require("./routes/index");
-// var usersRouter = require("./routes/users");
+var usersRouter = require("./routes/users");
 var productsRouter = require("./routes/products");
 var locationsRouter = require("./routes/locations");
 var categoryRouter = require("./routes/category");
@@ -53,7 +53,7 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(fileUpload({ useTempFiles: true }));
 app.use("/", indexRouter);
-// app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/user", usersRouter);
 app.use("/api/v1/product", productsRouter);
 app.use("/api/v1/location", locationsRouter);
 app.use("/api/v1/category", categoryRouter);
