@@ -2,7 +2,7 @@ const sizeOf = require("image-size");
 const ErrorHander = require("../utils/errorHandler");
 const cloudinary = require("../utils/cloudinary");
 const sharp = require("sharp");
-const imageUpload = async (images, next) => {
+const imageUpload = async (images, folderName, next) => {
   console.log("images", images);
   let myFiles = [];
   let imageData = [];
@@ -36,7 +36,7 @@ const imageUpload = async (images, next) => {
         cloudinary.uploader
           .upload_stream(
             {
-              folder: "products",
+              folder: folderName,
             },
             (err, result) => {
               if (err) {

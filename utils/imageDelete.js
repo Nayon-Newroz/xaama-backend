@@ -1,6 +1,6 @@
 const ErrorHander = require("../utils/errorHandler");
 const cloudinary = require("../utils/cloudinary");
-const imageDelete = async (publicId) => {
+const imageDelete = async (publicId,next) => {
   console.log("publicId", publicId);
   try {
     const result = await cloudinary.uploader.destroy(publicId);

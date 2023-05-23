@@ -168,7 +168,11 @@ const getById = catchAsyncError(async (req, res, next) => {
   if (!data) {
     return next(new ErrorHander("No data found", 404));
   }
-  res.send({ message: "success", status: 200, data: data });
+  res.status(200).json({
+    success: true,
+    message: "success",
+    data: data,
+  });
 });
 const createData = catchAsyncError(async (req, res, next) => {
   console.log("req.files", req.files);
@@ -176,7 +180,7 @@ const createData = catchAsyncError(async (req, res, next) => {
 
   let imageData = [];
   if (req.files) {
-    imageData = await imageUpload(req.files.images, next);
+    imageData = await imageUpload(req.files.images, "products", next);
   }
   console.log("imageData", imageData);
 
@@ -211,14 +215,14 @@ const updateData = async (req, res, next) => {
     if (req.files && data.images.length > 0) {
       for (let index = 0; index < data.images.length; index++) {
         const element = data.images[index];
-        await imageDelete(element.public_id);
+        await imageDelete(element.public_id, next);
       }
     }
     //uploading new images
     let imageData = [];
     let newData = req.body;
     if (req.files) {
-      imageData = await imageUpload(req.files.images, next);
+      imageData = await imageUpload(req.files.images, "products", next);
     }
     console.log("imageData", imageData);
     if (imageData.length > 0) {
@@ -259,7 +263,7 @@ const deleteData = catchAsyncError(async (req, res, next) => {
   if (data.images.length > 0) {
     for (let index = 0; index < data.images.length; index++) {
       const element = data.images[index];
-      await imageDelete(element.public_id);
+      await imageDelete(element.public_id, next);
     }
   }
   await data.remove();
