@@ -10,12 +10,13 @@ require("dotenv").config();
 const conntectDB = require("./db/database");
 // Routes Imports
 var indexRouter = require("./routes/index");
-var usersRouter = require("./routes/users");
-var productsRouter = require("./routes/products");
-var locationsRouter = require("./routes/locations");
-var categoryRouter = require("./routes/category");
-var filterRouter = require("./routes/filter");
-var orderRouter = require("./routes/order");
+var userRouter = require("./routes/userRoute");
+var productRouter = require("./routes/productRoute");
+var locationRouter = require("./routes/locationRoute");
+var categoryRouter = require("./routes/categoryRoute");
+var filterRouter = require("./routes/filterRoute");
+var orderRouter = require("./routes/orderRoute");
+var roleRouter = require("./routes/roleRoute");
 
 const errorMiddleware = require("./middleware/error");
 // Database connection
@@ -55,12 +56,13 @@ app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
 app.use(fileUpload({ useTempFiles: true }));
 app.use("/", indexRouter);
-app.use("/api/v1/user", usersRouter);
-app.use("/api/v1/product", productsRouter);
-app.use("/api/v1/location", locationsRouter);
+app.use("/api/v1/user", userRouter);
+app.use("/api/v1/product", productRouter);
+app.use("/api/v1/location", locationRouter);
 app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/filter", filterRouter);
 app.use("/api/v1/order", orderRouter);
+app.use("/api/v1/role", roleRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);

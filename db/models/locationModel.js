@@ -16,6 +16,9 @@ const locationSchema = mongoose.Schema({
     // default: 10000,
     required: [true, "Please enter parent name"],
   },
+  remarks: {
+    type: String,
+  },
   status: {
     type: Boolean,
     default: true,

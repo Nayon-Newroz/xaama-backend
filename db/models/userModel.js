@@ -41,6 +41,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  remarks: {
+    type: String,
+  },
   status: {
     type: Boolean,
     default: true,
@@ -102,3 +105,21 @@ userSchema.methods.getResetPasswordToken = function () {
 };
 
 module.exports = mongoose.model("User", userSchema);
+const user = mongoose.model("User", userSchema);
+
+const saveData = async () => {
+  let totalData = await user.countDocuments();
+  console.log("totalData 123456", totalData);
+  if (totalData < 1) {
+    const userDoc = new user({
+      user_id: "c100",
+      name: "admin",
+      email: "admin@admin.com",
+      password: "admin123",
+      role: "Super Admin",
+      created_by: "Super Admin",
+    });
+    await userDoc.save();
+  }
+};
+saveData();

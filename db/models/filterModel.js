@@ -19,6 +19,9 @@ const filterSchema = mongoose.Schema({
   category_id: {
     type: Array,
   },
+  remarks: {
+    type: String,
+  },
   status: {
     type: Boolean,
     default: true,

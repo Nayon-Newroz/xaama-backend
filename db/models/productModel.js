@@ -98,7 +98,9 @@ const productSchema = mongoose.Schema({
     type: String,
     // required: [true, "Please enter the product location"],
   },
-
+  remarks: {
+    type: String,
+  },
   status: {
     type: Boolean,
     default: true,

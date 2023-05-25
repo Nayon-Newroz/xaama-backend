@@ -7,6 +7,7 @@ const {
   loginUser,
   logout,
   updatePassword,
+  updateProfile,
 } = require("../controller/userController");
 const userModel = require("../db/models/userModel");
 
@@ -22,6 +23,7 @@ router.route("/create").post(createData);
 router.route("/delete/:id").delete(deleteData);
 router.route("/login").post(loginUser);
 router.route("/update-password").post(updatePassword);
+router.route("/update-profile").post(updateProfile);
 
 // router.route("/category-filter-list").post(getCategoryWiseFilterList);
 

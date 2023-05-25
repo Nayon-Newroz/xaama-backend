@@ -230,4 +230,5 @@ module.exports = {
   loginUser,
   logout,
   updatePassword,
+  updateProfile,
 };
