@@ -17,6 +17,7 @@ var categoryRouter = require("./routes/categoryRoute");
 var filterRouter = require("./routes/filterRoute");
 var orderRouter = require("./routes/orderRoute");
 var roleRouter = require("./routes/roleRoute");
+var permissionRouter = require("./routes/permissionRoute");
 
 const errorMiddleware = require("./middleware/error");
 // Database connection
@@ -63,6 +64,7 @@ app.use("/api/v1/category", categoryRouter);
 app.use("/api/v1/filter", filterRouter);
 app.use("/api/v1/order", orderRouter);
 app.use("/api/v1/role", roleRouter);
+app.use("/api/v1/permission", permissionRouter);
 
 // catch 404 and forward to error handler
 app.use(errorMiddleware);

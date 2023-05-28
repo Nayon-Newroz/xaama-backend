@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const roleSchema = new mongoose.Schema({
   role_id: {
     type: String,
-    required: [true, "Please enter order id"],
+    required: [true, "Please enter role id"],
   },
 
-  role_name: {
+  name: {
     type: String,
-    required: [true, "Please enter customer name"],
+    required: [true, "Please enter role name"],
   },
 
   permission: Array,
@@ -38,10 +38,10 @@ const roleSchema = new mongoose.Schema({
 const roleModel = mongoose.model("role", roleSchema);
 const saveData = async () => {
   let totalData = await roleModel.countDocuments();
-  console.log("totalData 123456", totalData);
+  console.log("role totalData ", totalData);
   if (totalData < 1) {
     const roleDoc = new roleModel({
-      category_id: "R100",
+      role_id: "R100",
       name: "Super Admin",
       permission: ["All"],
     });
